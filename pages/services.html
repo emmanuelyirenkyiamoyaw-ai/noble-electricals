@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Services — Noble Electricals</title>
+<link rel="stylesheet" href="../css/global.css">
+<link rel="stylesheet" href="../css/nav-footer.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+.page-hero { position:relative; min-height:42vh; display:flex; align-items:flex-end; overflow:hidden; }
+.page-hero-bg { position:absolute; inset:0; background-image:url('https://images.unsplash.com/photo-1621905251918-b7a3b3e24b5c?w=1600&q=80&auto=format'); background-size:cover; background-position:center; }
+.page-hero-ov { position:absolute; inset:0; background:linear-gradient(to bottom, rgba(10,10,10,.7) 0%, rgba(10,10,10,.92) 100%); }
+.page-hero-content { position:relative; z-index:2; padding:calc(var(--nav-h)+60px) 0 56px; width:100%; }
+.breadcrumb { display:flex; align-items:center; gap:8px; font-size:.75rem; color:rgba(255,255,255,.4); margin-bottom:14px; }
+.breadcrumb a { color:var(--yellow); }
+
+/* SERVICE CARDS (large) */
+.svc-section { padding:80px 0; }
+.svc-section:nth-child(odd) { background:var(--black); }
+.svc-section:nth-child(even) { background:var(--dark); }
+.svc-layout { display:grid; grid-template-columns:1fr 1fr; gap:64px; align-items:center; }
+.svc-layout.reverse { direction:rtl; }
+.svc-layout.reverse > * { direction:ltr; }
+.svc-img { border-radius:var(--radius); overflow:hidden; aspect-ratio:4/3; border:2px solid rgba(255,193,7,.15); }
+.svc-img img { width:100%; height:100%; object-fit:cover; transition:.5s; }
+.svc-img:hover img { transform:scale(1.04); }
+.svc-content {}
+.svc-content .icon-box { margin-bottom:18px; width:56px; height:56px; font-size:1.4rem; }
+.svc-content h2 { font-family:'Montserrat',sans-serif; font-size:clamp(1.5rem,3vw,2.2rem); font-weight:900; margin-bottom:12px; }
+.svc-content p { color:rgba(255,255,255,.55); font-size:.9rem; line-height:1.85; margin-bottom:20px; }
+.svc-includes { display:flex; flex-direction:column; gap:8px; margin-bottom:28px; }
+.svc-includes li { display:flex; align-items:center; gap:9px; font-size:.83rem; color:rgba(255,255,255,.7); }
+.svc-includes li i { color:var(--yellow); font-size:.8rem; }
+
+/* PROCESS */
+.process-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:0; }
+.proc-step { text-align:center; padding:36px 24px; position:relative; }
+.proc-step::after { content:''; position:absolute; top:50px; right:-1px; width:2px; height:30px; background:rgba(255,193,7,.2); }
+.proc-step:last-child::after { display:none; }
+.proc-num { width:52px; height:52px; border-radius:50%; background:rgba(255,193,7,.1); border:2px solid rgba(255,193,7,.3); display:flex; align-items:center; justify-content:center; font-family:'Montserrat',sans-serif; font-size:1.1rem; font-weight:900; color:var(--yellow); margin:0 auto 16px; }
+.proc-step h4 { font-family:'Montserrat',sans-serif; font-size:.88rem; font-weight:800; margin-bottom:8px; }
+.proc-step p { font-size:.78rem; color:rgba(255,255,255,.4); line-height:1.7; }
+
+/* PRICING CARDS */
+.price-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:20px; }
+.price-card { background:var(--dark); border:1px solid rgba(255,255,255,.07); border-radius:var(--radius); padding:34px 28px; position:relative; transition:.3s; }
+.price-card.featured { border-color:var(--yellow); background:rgba(255,193,7,.04); }
+.price-card:hover { transform:translateY(-4px); border-color:rgba(255,193,7,.35); }
+.price-badge { position:absolute; top:-12px; left:50%; transform:translateX(-50%); background:var(--yellow); color:var(--black); font-size:.65rem; font-weight:800; letter-spacing:1px; padding:4px 14px; border-radius:100px; white-space:nowrap; }
+.price-icon { margin-bottom:16px; }
+.price-card h3 { font-family:'Montserrat',sans-serif; font-size:1rem; font-weight:800; margin-bottom:6px; }
+.price-card .price { font-family:'Montserrat',sans-serif; font-size:1.6rem; font-weight:900; color:var(--yellow); margin:12px 0; }
+.price-card .price span { font-size:.85rem; font-weight:500; color:rgba(255,255,255,.4); }
+.price-card ul { display:flex; flex-direction:column; gap:9px; margin:20px 0 26px; }
+.price-card ul li { display:flex; align-items:center; gap:8px; font-size:.8rem; color:rgba(255,255,255,.6); }
+.price-card ul li i { color:var(--yellow); font-size:.75rem; }
+
+@media(max-width:1024px){
+  .svc-layout, .svc-layout.reverse { grid-template-columns:1fr; direction:ltr; gap:36px; }
+  .process-grid { grid-template-columns:repeat(2,1fr); }
+  .proc-step::after { display:none; }
+  .price-grid { grid-template-columns:1fr; }
+}
+@media(max-width:640px){
+  .process-grid { grid-template-columns:1fr; }
+}
+</style>
+</head>
+<body>
+<div id="nav-mount"></div>
+
+<div class="page-hero">
+  <div class="page-hero-bg"></div>
+  <div class="page-hero-ov"></div>
+  <div class="page-hero-content">
+    <div class="container">
+      <div class="breadcrumb"><a href="../index.html">Home</a><i class="fas fa-chevron-right"></i><span>Services</span></div>
+      <h1 style="font-family:'Montserrat',sans-serif;font-size:clamp(2rem,5vw,3.8rem);font-weight:900;letter-spacing:-1.5px;margin-bottom:12px;">Our Services</h1>
+      <p style="color:rgba(255,255,255,.6);max-width:500px;line-height:1.8;">Professional electrical solutions for every need — delivered safely, neatly, and reliably across Accra.</p>
+    </div>
+  </div>
+</div>
+
+<div id="servicesPageSections"></div>
+
+<!-- PROCESS -->
+<section class="section section--dark">
+  <div class="container">
+    <div class="sec-center reveal" style="text-align:center;margin-bottom:52px">
+      <div class="tag-line" style="justify-content:center">How It Works</div>
+      <h2 class="sec-h2">Our Simple Process</h2>
+      <p class="sec-p" style="margin:14px auto 0">Getting electrical work done with Noble Electricals is easy and straightforward.</p>
+    </div>
+    <div class="process-grid">
+      <div class="proc-step reveal" style="transition-delay:.05s">
+        <div class="proc-num">01</div>
+        <h4>Contact Us</h4>
+        <p>Call or fill out our contact form to describe your electrical needs or issue.</p>
+      </div>
+      <div class="proc-step reveal" style="transition-delay:.1s">
+        <div class="proc-num">02</div>
+        <h4>Free Assessment</h4>
+        <p>We visit your property, assess the situation, and provide a transparent quote.</p>
+      </div>
+      <div class="proc-step reveal" style="transition-delay:.15s">
+        <div class="proc-num">03</div>
+        <h4>Expert Work</h4>
+        <p>Our certified technicians carry out the work safely, neatly, and on schedule.</p>
+      </div>
+      <div class="proc-step reveal" style="transition-delay:.2s">
+        <div class="proc-num">04</div>
+        <h4>Sign Off & Support</h4>
+        <p>We test everything, hand over certificates, and provide ongoing aftercare support.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section style="background:var(--dark);border-top:1px solid rgba(255,193,7,.1);padding:80px 0;text-align:center">
+  <div class="container reveal">
+    <div class="tag-line" style="justify-content:center">Ready to Start?</div>
+    <h2 class="sec-h2" style="margin-bottom:14px">Let's Discuss Your Project</h2>
+    <p class="sec-p" style="margin:0 auto 32px">Contact Noble Electricals today for a free consultation and competitive quote.</p>
+    <div style="display:flex;justify-content:center;gap:14px;flex-wrap:wrap">
+      <a href="tel:0551897182" class="btn btn-yellow"><i class="fas fa-phone"></i> Call Now — 055 189 7182</a>
+      <a href="contact.html" class="btn btn-outline-y"><i class="fas fa-file-alt"></i> Get Free Quote</a>
+    </div>
+  </div>
+</section>
+
+<div id="footer-mount"></div>
+<div class="toast"></div>
+<script src="../js/shared.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+  await initShared('Services');
+  renderServicesPage('#servicesPageSections');
+  initReveal();
+  initCounters();
+});
+</script>
+</body>
+</html>

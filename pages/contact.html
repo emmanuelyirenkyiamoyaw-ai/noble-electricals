@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Contact — Noble Electricals</title>
+<link rel="stylesheet" href="../css/global.css">
+<link rel="stylesheet" href="../css/nav-footer.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+.page-hero { position:relative; min-height:38vh; display:flex; align-items:flex-end; overflow:hidden; }
+.page-hero-bg { position:absolute; inset:0; background-image:url('https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=1600&q=80&auto=format'); background-size:cover; background-position:center 20%; }
+.page-hero-ov { position:absolute; inset:0; background:linear-gradient(to bottom, rgba(10,10,10,.7) 0%, rgba(10,10,10,.94) 100%); }
+.page-hero-content { position:relative; z-index:2; padding:calc(var(--nav-h)+60px) 0 56px; width:100%; }
+.breadcrumb { display:flex; align-items:center; gap:8px; font-size:.75rem; color:rgba(255,255,255,.4); margin-bottom:14px; }
+.breadcrumb a { color:var(--yellow); }
+
+/* CONTACT GRID */
+.contact-layout { display:grid; grid-template-columns:1fr 1.4fr; gap:64px; align-items:start; }
+
+/* INFO SIDE */
+.contact-info-cards { display:flex; flex-direction:column; gap:14px; margin:28px 0; }
+.c-card { background:var(--dark); border:1px solid rgba(255,255,255,.07); border-radius:12px; padding:20px; display:flex; align-items:flex-start; gap:14px; transition:.25s; }
+.c-card:hover { border-color:rgba(255,193,7,.3); }
+.c-card .icon-box { flex-shrink:0; margin-top:2px; }
+.c-card strong { display:block; font-size:.9rem; font-weight:700; margin-bottom:4px; }
+.c-card p { font-size:.82rem; color:rgba(255,255,255,.45); line-height:1.7; }
+.c-card a { color:rgba(255,255,255,.65); font-size:.82rem; display:block; margin-top:2px; transition:.2s; }
+.c-card a:hover { color:var(--yellow); }
+
+.hours-card { background:rgba(255,193,7,.05); border:1px solid rgba(255,193,7,.15); border-radius:12px; padding:22px; }
+.hours-card h4 { font-family:'Montserrat',sans-serif; font-size:.78rem; font-weight:800; color:var(--yellow); letter-spacing:1.5px; text-transform:uppercase; margin-bottom:14px; }
+.h-row { display:flex; justify-content:space-between; font-size:.8rem; color:rgba(255,255,255,.5); padding:7px 0; border-bottom:1px solid rgba(255,255,255,.05); }
+.h-row:last-child { border:none; }
+.h-row.today { color:var(--yellow); font-weight:600; }
+
+/* MAP */
+.map-wrap { border-radius:14px; overflow:hidden; border:1px solid rgba(255,255,255,.08); height:220px; position:relative; margin-top:20px; background:var(--dark); display:flex; align-items:center; justify-content:center; flex-direction:column; gap:12px; color:rgba(255,255,255,.2); }
+.map-wrap i { font-size:3rem; }
+.map-wrap p { font-size:.75rem; letter-spacing:1px; }
+.map-wrap a { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:12px; color:rgba(255,255,255,.25); text-decoration:none; transition:.25s; }
+.map-wrap a:hover { background:rgba(255,193,7,.05); color:rgba(255,255,255,.5); }
+
+/* FORM SIDE */
+.form-box { background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.07); border-radius:20px; padding:44px; }
+.form-box h3 { font-family:'Montserrat',sans-serif; font-size:1.4rem; font-weight:900; margin-bottom:6px; }
+.form-box .sub { color:rgba(255,255,255,.4); font-size:.82rem; margin-bottom:28px; }
+.form-row-2 { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+.submit-btn { width:100%; background:var(--yellow); color:var(--black); border:none; border-radius:var(--radius-sm); padding:15px; font-family:'Montserrat',sans-serif; font-weight:900; font-size:.88rem; letter-spacing:.5px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:9px; transition:.3s; margin-top:8px; }
+.submit-btn:hover { background:var(--yellow-dk); box-shadow:0 8px 30px rgba(255,193,7,.3); transform:translateY(-2px); }
+.submit-btn.loading { opacity:.7; pointer-events:none; }
+.submit-btn.success { background:#27ae60; }
+
+/* SUCCESS MESSAGE */
+.success-box { display:none; text-align:center; padding:40px; }
+.success-box.show { display:block; }
+.success-box i { font-size:3rem; color:#27ae60; margin-bottom:16px; }
+.success-box h4 { font-family:'Montserrat',sans-serif; font-size:1.2rem; font-weight:800; margin-bottom:8px; }
+.success-box p { color:rgba(255,255,255,.5); font-size:.85rem; }
+
+/* EMERGENCY BAND */
+.emergency-band { background:var(--yellow); padding:28px 0; }
+.emergency-inner { display:flex; align-items:center; justify-content:space-between; gap:24px; flex-wrap:wrap; }
+.emergency-inner h3 { font-family:'Montserrat',sans-serif; font-size:1.1rem; font-weight:900; color:var(--black); display:flex; align-items:center; gap:10px; }
+.emergency-inner h3 i { font-size:1.3rem; }
+.emergency-inner p { font-size:.85rem; color:rgba(10,10,10,.6); margin-top:3px; }
+.emergency-phones { display:flex; gap:20px; flex-wrap:wrap; }
+.ep { display:flex; align-items:center; gap:8px; color:var(--black); font-family:'Montserrat',sans-serif; font-size:1.1rem; font-weight:900; text-decoration:none; transition:.2s; }
+.ep i { font-size:1rem; }
+.ep:hover { opacity:.7; }
+
+@media(max-width:1024px){
+  .contact-layout { grid-template-columns:1fr; gap:48px; }
+}
+@media(max-width:600px){
+  .form-box { padding:28px 20px; }
+  .form-row-2 { grid-template-columns:1fr; }
+  .emergency-inner { flex-direction:column; align-items:flex-start; }
+}
+</style>
+</head>
+<body>
+<div id="nav-mount"></div>
+
+<div class="page-hero">
+  <div class="page-hero-bg"></div>
+  <div class="page-hero-ov"></div>
+  <div class="page-hero-content">
+    <div class="container">
+      <div class="breadcrumb"><a href="../index.html">Home</a><i class="fas fa-chevron-right"></i><span>Contact</span></div>
+      <h1 style="font-family:'Montserrat',sans-serif;font-size:clamp(2rem,5vw,3.8rem);font-weight:900;letter-spacing:-1.5px;margin-bottom:12px;">Get In Touch</h1>
+      <p style="color:rgba(255,255,255,.6);max-width:500px;line-height:1.8;">We're ready to help. Call us directly or fill out the form and we'll get back to you promptly.</p>
+    </div>
+  </div>
+</div>
+
+<!-- EMERGENCY BAND -->
+<div class="emergency-band">
+  <div class="container">
+    <div class="emergency-inner">
+      <div>
+        <h3><i class="fas fa-bolt"></i> 24/7 Emergency Electrical Service</h3>
+        <p>Don't wait — electrical emergencies are dangerous. Call us right now.</p>
+      </div>
+      <div class="emergency-phones" id="emergencyPhones">
+        <a href="tel:0551897182" class="ep"><i class="fas fa-phone-alt"></i> 055 189 7182</a>
+        <a href="tel:0202506436" class="ep"><i class="fas fa-phone-alt"></i> 020 250 6436</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN CONTACT -->
+<section class="section section--dark">
+  <div class="container">
+    <div class="contact-layout">
+
+      <!-- INFO -->
+      <div class="reveal-l">
+        <div class="tag-line">Contact Details</div>
+        <h2 class="sec-h2">We're Here to Help</h2>
+        <div class="divider"></div>
+        <p class="sec-p">Whether it's a small repair or a full installation, our team is ready to assist. Reach out through any of the channels below.</p>
+
+        <div class="contact-info-cards">
+          <div class="c-card">
+            <div class="icon-box"><i class="fas fa-phone-alt"></i></div>
+            <div id="contactPhoneList">
+              <strong>Phone Numbers</strong>
+              <a href="tel:0551897182">055 189 7182</a>
+              <a href="tel:0202506436">020 250 6436</a>
+            </div>
+          </div>
+          <div class="c-card">
+            <div class="icon-box"><i class="fas fa-envelope"></i></div>
+            <div>
+              <strong>Email Address</strong>
+              <a href="mailto:osmanbilad8@gmail.com" id="contactEmailLink">osmanbilad8@gmail.com</a>
+            </div>
+          </div>
+          <div class="c-card">
+            <div class="icon-box"><i class="fab fa-whatsapp"></i></div>
+            <div>
+              <strong>WhatsApp</strong>
+              <a href="https://wa.me/233551897182" target="_blank" id="contactWhatsappLink">Message us on WhatsApp</a>
+            </div>
+          </div>
+          <div class="c-card">
+            <div class="icon-box"><i class="fas fa-map-marker-alt"></i></div>
+            <div>
+              <strong>Service Area</strong>
+              <p id="contactServiceArea">Accra & Surroundings — East Legon, Osu, Tema, Adenta, Spintex, Airport Hills, Cantonments, and beyond.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="hours-card" id="contactHours">
+          <h4><i class="fas fa-clock"></i> &nbsp; Business Hours</h4>
+          <div class="h-row today"><span>Monday – Friday</span><span>7:00 AM – 6:00 PM</span></div>
+          <div class="h-row"><span>Saturday</span><span>8:00 AM – 4:00 PM</span></div>
+          <div class="h-row"><span>Sunday</span><span>Emergency Only</span></div>
+          <div class="h-row"><span>Public Holidays</span><span>Emergency Only</span></div>
+        </div>
+
+        <div class="map-wrap">
+          <a href="https://maps.google.com/?q=Accra+Ghana" target="_blank">
+            <i class="fas fa-map-marked-alt"></i>
+            <p>ACCRA, GHANA — Click to view on Google Maps</p>
+          </a>
+        </div>
+      </div>
+
+      <!-- FORM -->
+      <div class="reveal-r">
+        <div class="form-box" id="formBox">
+          <h3>Send Us a Message</h3>
+          <p class="sub">Fill out the form below and we'll respond within a few hours.</p>
+
+          <div id="contactForm">
+            <div class="form-row-2">
+              <div class="f-group">
+                <label>Full Name *</label>
+                <input type="text" id="fname" placeholder="Your full name" required>
+              </div>
+              <div class="f-group">
+                <label>Phone Number *</label>
+                <input type="tel" id="fphone" placeholder="0XX XXX XXXX" required>
+              </div>
+            </div>
+            <div class="f-group">
+              <label>Email Address</label>
+              <input type="email" id="femail" placeholder="your@email.com">
+            </div>
+            <div class="f-group">
+              <label>Service Needed *</label>
+              <select id="fservice" required>
+                <option value="">Select a service...</option>
+                <option>House Wiring</option>
+                <option>Solar Installation</option>
+                <option>Fault Finding &amp; Repairs</option>
+                <option>Lighting &amp; Maintenance</option>
+                <option>Electrical Upgrades</option>
+                <option>Commercial Electrical</option>
+                <option>Emergency Callout</option>
+                <option>Other</option>
+              </select>
+            </div>
+            <div class="f-group">
+              <label>Property Type</label>
+              <select id="fproperty">
+                <option value="">Select property type...</option>
+                <option>Residential Home</option>
+                <option>Apartment / Flat</option>
+                <option>Office</option>
+                <option>Shop / Retail</option>
+                <option>Warehouse / Industrial</option>
+                <option>Other</option>
+              </select>
+            </div>
+            <div class="f-group">
+              <label>Your Message *</label>
+              <textarea id="fmessage" placeholder="Describe your electrical issue or project in detail..." required></textarea>
+            </div>
+            <button class="submit-btn" id="submitBtn" onclick="submitForm()">
+              <i class="fas fa-paper-plane"></i> Send Message
+            </button>
+          </div>
+
+          <div class="success-box" id="successBox">
+            <i class="fas fa-check-circle"></i>
+            <h4>Message Sent Successfully!</h4>
+            <p>Thank you for contacting Noble Electricals. We'll get back to you within a few hours. For urgent issues, please call us directly on <strong>055 189 7182</strong>.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div id="footer-mount"></div>
+<div class="toast"></div>
+<script src="../js/shared.js"></script>
+<script>
+async function submitForm() {
+  const btn = document.getElementById('submitBtn');
+  const name = document.getElementById('fname').value.trim();
+  const phone = document.getElementById('fphone').value.trim();
+  const service = document.getElementById('fservice').value;
+  const message = document.getElementById('fmessage').value.trim();
+
+  if(!name || !phone || !service || !message) {
+    showToast('Please fill in all required fields.', 'error');
+    return;
+  }
+
+  btn.classList.add('loading');
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+
+  const submission = {
+    name, phone,
+    email: document.getElementById('femail').value,
+    service, message,
+    property: document.getElementById('fproperty').value,
+    created_at: new Date().toISOString()
+  };
+
+  const result = await NobleSite.createSubmission(submission);
+  if (!result.ok) {
+    console.warn('Submission saved locally because Supabase write failed.', result.error);
+  }
+
+  setTimeout(() => {
+    document.getElementById('contactForm').style.display = 'none';
+    document.getElementById('successBox').classList.add('show');
+    showToast('Message sent successfully!');
+  }, 1200);
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
+  await initShared('Contact');
+  renderContactPage();
+});
+</script>
+</body>
+</html>

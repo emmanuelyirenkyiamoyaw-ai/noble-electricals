@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Gallery — Noble Electricals</title>
+<link rel="stylesheet" href="../css/global.css">
+<link rel="stylesheet" href="../css/nav-footer.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+.page-hero { position:relative; min-height:40vh; display:flex; align-items:flex-end; overflow:hidden; }
+.page-hero-bg { position:absolute; inset:0; background-image:url('https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=1600&q=80&auto=format'); background-size:cover; background-position:center; }
+.page-hero-ov { position:absolute; inset:0; background:linear-gradient(to bottom, rgba(10,10,10,.7) 0%, rgba(10,10,10,.92) 100%); }
+.page-hero-content { position:relative; z-index:2; padding:calc(var(--nav-h)+60px) 0 56px; width:100%; }
+.breadcrumb { display:flex; align-items:center; gap:8px; font-size:.75rem; color:rgba(255,255,255,.4); margin-bottom:14px; }
+.breadcrumb a { color:var(--yellow); }
+
+/* FILTER TABS */
+.filter-tabs { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:40px; justify-content:center; }
+.ftab { background:var(--dark); border:1px solid rgba(255,255,255,.1); color:rgba(255,255,255,.55); font-family:'Montserrat',sans-serif; font-size:.75rem; font-weight:700; letter-spacing:.5px; padding:9px 20px; border-radius:100px; cursor:pointer; transition:.25s; }
+.ftab.active, .ftab:hover { background:var(--yellow); color:var(--black); border-color:var(--yellow); }
+
+/* GALLERY GRID */
+.gallery-masonry { columns:3; gap:16px; }
+.gal-item { break-inside:avoid; margin-bottom:16px; border-radius:12px; overflow:hidden; position:relative; cursor:pointer; border:1px solid rgba(255,255,255,.06); transition:all .35s; }
+.gal-item:hover { transform:scale(1.02); box-shadow:0 20px 50px rgba(0,0,0,.6); border-color:rgba(255,193,7,.3); }
+.gal-item img { width:100%; height:auto; display:block; transition:.4s; }
+.gal-item:hover img { filter:brightness(.75); }
+.gal-overlay { position:absolute; inset:0; display:flex; flex-direction:column; justify-content:flex-end; padding:20px; background:linear-gradient(to top, rgba(0,0,0,.85) 0%, transparent 55%); opacity:0; transition:.35s; }
+.gal-item:hover .gal-overlay { opacity:1; }
+.gal-overlay h4 { font-family:'Montserrat',sans-serif; font-size:.88rem; font-weight:800; margin-bottom:4px; }
+.gal-overlay span { font-size:.72rem; color:var(--yellow); }
+.gal-zoom { position:absolute; top:14px; right:14px; width:36px; height:36px; background:rgba(255,193,7,.9); border-radius:50%; display:flex; align-items:center; justify-content:center; color:var(--black); font-size:.9rem; opacity:0; transition:.3s; }
+.gal-item:hover .gal-zoom { opacity:1; }
+
+/* LIGHTBOX */
+.lightbox { position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,.95); display:flex; align-items:center; justify-content:center; opacity:0; pointer-events:none; transition:.3s; }
+.lightbox.open { opacity:1; pointer-events:all; }
+.lb-inner { position:relative; max-width:90vw; max-height:90vh; }
+.lb-inner img { max-width:90vw; max-height:82vh; border-radius:12px; object-fit:contain; }
+.lb-close { position:absolute; top:-40px; right:0; background:none; border:none; color:var(--white); font-size:1.6rem; cursor:pointer; transition:.25s; }
+.lb-close:hover { color:var(--yellow); }
+.lb-info { position:absolute; bottom:-48px; left:0; right:0; text-align:center; }
+.lb-info h4 { font-family:'Montserrat',sans-serif; font-size:.9rem; font-weight:700; }
+.lb-info span { font-size:.75rem; color:var(--yellow); }
+.lb-nav { position:absolute; top:50%; transform:translateY(-50%); background:rgba(255,193,7,.15); border:1px solid rgba(255,193,7,.3); border-radius:50%; width:44px; height:44px; display:flex; align-items:center; justify-content:center; color:var(--white); font-size:1rem; cursor:pointer; transition:.25s; }
+.lb-nav:hover { background:var(--yellow); color:var(--black); }
+.lb-prev { left:-60px; }
+.lb-next { right:-60px; }
+
+@media(max-width:900px){ .gallery-masonry { columns:2; } .lb-prev{left:-10px;} .lb-next{right:-10px;} }
+@media(max-width:540px){ .gallery-masonry { columns:1; } }
+</style>
+</head>
+<body>
+<div id="nav-mount"></div>
+
+<div class="page-hero">
+  <div class="page-hero-bg"></div>
+  <div class="page-hero-ov"></div>
+  <div class="page-hero-content">
+    <div class="container">
+      <div class="breadcrumb"><a href="../index.html">Home</a><i class="fas fa-chevron-right"></i><span>Gallery</span></div>
+      <h1 style="font-family:'Montserrat',sans-serif;font-size:clamp(2rem,5vw,3.8rem);font-weight:900;letter-spacing:-1.5px;margin-bottom:12px;">Our Projects</h1>
+      <p style="color:rgba(255,255,255,.6);max-width:500px;line-height:1.8;">Browse our portfolio of completed electrical projects across Accra — each one a testament to our quality and professionalism.</p>
+    </div>
+  </div>
+</div>
+
+<section class="section section--dark">
+  <div class="container">
+    <div class="filter-tabs reveal">
+      <button class="ftab active" data-filter="all">All Projects</button>
+      <button class="ftab" data-filter="wiring">House Wiring</button>
+      <button class="ftab" data-filter="solar">Solar</button>
+      <button class="ftab" data-filter="lighting">Lighting</button>
+      <button class="ftab" data-filter="commercial">Commercial</button>
+    </div>
+
+    <div class="gallery-masonry" id="galleryGrid">
+      <!-- Items injected by JS -->
+    </div>
+  </div>
+</section>
+
+<!-- Lightbox -->
+<div class="lightbox" id="lightbox">
+  <div class="lb-inner">
+    <button class="lb-close" id="lbClose"><i class="fas fa-times"></i></button>
+    <button class="lb-nav lb-prev" id="lbPrev"><i class="fas fa-chevron-left"></i></button>
+    <img src="" id="lbImg" alt="">
+    <button class="lb-nav lb-next" id="lbNext"><i class="fas fa-chevron-right"></i></button>
+    <div class="lb-info">
+      <h4 id="lbTitle"></h4>
+      <span id="lbCat"></span>
+    </div>
+  </div>
+</div>
+
+<!-- CTA -->
+<section style="background:var(--dark);border-top:1px solid rgba(255,193,7,.1);padding:80px 0;text-align:center">
+  <div class="container reveal">
+    <div class="tag-line" style="justify-content:center">Start Your Project</div>
+    <h2 class="sec-h2" style="margin-bottom:14px">Ready to Add Your Project Here?</h2>
+    <p class="sec-p" style="margin:0 auto 32px">Contact us today for a free site assessment and quote. Join hundreds of satisfied Noble Electricals clients.</p>
+    <div style="display:flex;justify-content:center;gap:14px;flex-wrap:wrap">
+      <a href="tel:0551897182" class="btn btn-yellow"><i class="fas fa-phone"></i> Call Now</a>
+      <a href="contact.html" class="btn btn-outline-y"><i class="fas fa-file-alt"></i> Get Free Quote</a>
+    </div>
+  </div>
+</section>
+
+<div id="footer-mount"></div>
+<div class="toast"></div>
+<script src="../js/shared.js"></script>
+<script>
+let currentFilter = 'all';
+let currentIndex = 0;
+let visible = [];
+
+function renderGallery(filter) {
+  visible = renderGalleryGrid('#galleryGrid', filter).map((item) => ({
+    ...item,
+    img: item.img_url,
+    catLabel: item.cat_label
+  }));
+  document.querySelectorAll('.gal-item').forEach((el, i) => {
+    el.addEventListener('click', () => openLightbox(i));
+  });
+}
+
+function openLightbox(idx) {
+  currentIndex = idx;
+  const item = visible[idx];
+  document.getElementById('lbImg').src = item.img;
+  document.getElementById('lbTitle').textContent = item.title;
+  document.getElementById('lbCat').textContent = item.catLabel + ' — ' + item.location;
+  document.getElementById('lightbox').classList.add('open');
+}
+
+document.getElementById('lbClose').addEventListener('click', () => document.getElementById('lightbox').classList.remove('open'));
+document.getElementById('lightbox').addEventListener('click', e => { if(e.target === e.currentTarget) e.currentTarget.classList.remove('open'); });
+document.getElementById('lbPrev').addEventListener('click', e => { e.stopPropagation(); openLightbox((currentIndex - 1 + visible.length) % visible.length); });
+document.getElementById('lbNext').addEventListener('click', e => { e.stopPropagation(); openLightbox((currentIndex + 1) % visible.length); });
+document.addEventListener('keydown', e => {
+  const lb = document.getElementById('lightbox');
+  if(!lb.classList.contains('open')) return;
+  if(e.key === 'Escape') lb.classList.remove('open');
+  if(e.key === 'ArrowLeft') openLightbox((currentIndex - 1 + visible.length) % visible.length);
+  if(e.key === 'ArrowRight') openLightbox((currentIndex + 1) % visible.length);
+});
+
+document.querySelectorAll('.ftab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.ftab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentFilter = btn.dataset.filter;
+    renderGallery(currentFilter);
+  });
+});
+
+document.addEventListener('DOMContentLoaded', async () => {
+  await initShared('Gallery');
+  renderGallery('all');
+});
+</script>
+</body>
+</html>

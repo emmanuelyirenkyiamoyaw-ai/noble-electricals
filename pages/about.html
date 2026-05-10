@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>About Us — Noble Electricals</title>
+<link rel="stylesheet" href="../css/global.css">
+<link rel="stylesheet" href="../css/nav-footer.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+/* PAGE HERO */
+.page-hero {
+  position:relative; min-height:42vh;
+  display:flex; align-items:flex-end;
+  padding-bottom:0; overflow:hidden;
+}
+.page-hero-bg {
+  position:absolute; inset:0;
+  background-image:url('https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=1600&q=80&auto=format');
+  background-size:cover; background-position:center 30%;
+}
+.page-hero-ov {
+  position:absolute; inset:0;
+  background:linear-gradient(to bottom, rgba(10,10,10,.75) 0%, rgba(10,10,10,.92) 100%);
+}
+.page-hero-content {
+  position:relative; z-index:2; padding:calc(var(--nav-h)+60px) 0 56px;
+  width:100%;
+}
+.breadcrumb { display:flex; align-items:center; gap:8px; font-size:.75rem; color:rgba(255,255,255,.4); margin-bottom:14px; }
+.breadcrumb a { color:var(--yellow); transition:.2s; }
+.breadcrumb a:hover { color:var(--white); }
+.breadcrumb i { font-size:.6rem; }
+.page-hero h1 { font-family:'Montserrat',sans-serif; font-size:clamp(2rem,5vw,3.8rem); font-weight:900; letter-spacing:-1.5px; margin-bottom:12px; }
+.page-hero p { color:rgba(255,255,255,.6); font-size:.95rem; max-width:520px; line-height:1.8; }
+
+/* ABOUT STORY */
+.story-grid { display:grid; grid-template-columns:1fr 1fr; gap:72px; align-items:center; }
+.story-img-stack { position:relative; }
+.s-main { border-radius:16px; overflow:hidden; aspect-ratio:4/3; border:2px solid rgba(255,193,7,.15); }
+.s-main img { width:100%; height:100%; object-fit:cover; }
+.s-accent { position:absolute; bottom:-28px; right:-20px; width:46%; aspect-ratio:1; border-radius:14px; overflow:hidden; border:3px solid var(--yellow); box-shadow:0 0 40px rgba(255,193,7,.2); }
+.s-accent img { width:100%; height:100%; object-fit:cover; }
+.s-badge { position:absolute; top:28px; left:-18px; background:var(--yellow); color:var(--black); border-radius:12px; padding:14px 20px; text-align:center; font-family:'Montserrat',sans-serif; box-shadow:0 8px 30px rgba(255,193,7,.4); }
+.s-badge .n { font-size:2rem; font-weight:900; line-height:1; }
+.s-badge .l { font-size:.58rem; font-weight:800; letter-spacing:1px; }
+
+.story-text { padding-bottom:28px; }
+.story-text .sec-p { margin-bottom:16px; }
+.mission-vision { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin:28px 0; }
+.mv-card { background:var(--dark); border:1px solid rgba(255,255,255,.07); border-radius:12px; padding:20px; }
+.mv-card .icon-box { margin-bottom:12px; }
+.mv-card h4 { font-family:'Montserrat',sans-serif; font-size:.88rem; font-weight:800; margin-bottom:6px; }
+.mv-card p { color:rgba(255,255,255,.45); font-size:.78rem; line-height:1.7; }
+
+/* STATS ROW */
+.stats-band { background:var(--yellow); padding:52px 0; }
+.stats-inner { display:grid; grid-template-columns:repeat(4,1fr); gap:0; }
+.stat-col { text-align:center; padding:0 20px; border-right:1px solid rgba(10,10,10,.15); }
+.stat-col:last-child { border-right:none; }
+.stat-col .num { font-family:'Montserrat',sans-serif; font-size:2.8rem; font-weight:900; color:var(--black); line-height:1; }
+.stat-col .lbl { font-size:.78rem; font-weight:700; color:rgba(10,10,10,.65); margin-top:4px; letter-spacing:.5px; }
+
+/* TEAM */
+.team-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:24px; }
+.team-card { background:var(--dark); border:1px solid rgba(255,255,255,.07); border-radius:var(--radius); overflow:hidden; transition:.3s; }
+.team-card:hover { border-color:rgba(255,193,7,.3); transform:translateY(-4px); }
+.team-photo { aspect-ratio:1; background:var(--dark2); display:flex; align-items:center; justify-content:center; font-size:4rem; color:rgba(255,193,7,.25); }
+.team-info { padding:20px; }
+.team-info h3 { font-family:'Montserrat',sans-serif; font-size:.95rem; font-weight:800; margin-bottom:4px; }
+.team-info .role { font-size:.75rem; color:var(--yellow); font-weight:600; margin-bottom:8px; }
+.team-info p { font-size:.78rem; color:rgba(255,255,255,.4); line-height:1.7; }
+
+/* VALUES */
+.values-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:20px; }
+.val-card { background:var(--dark); border:1px solid rgba(255,255,255,.07); border-radius:var(--radius); padding:28px 24px; text-align:center; transition:.3s; }
+.val-card:hover { border-color:rgba(255,193,7,.3); transform:translateY(-4px); }
+.val-icon { width:56px; height:56px; border-radius:14px; background:rgba(255,193,7,.1); display:flex; align-items:center; justify-content:center; font-size:1.4rem; color:var(--yellow); margin:0 auto 16px; transition:.3s; }
+.val-card:hover .val-icon { background:rgba(255,193,7,.2); box-shadow:0 0 20px rgba(255,193,7,.2); }
+.val-card h4 { font-family:'Montserrat',sans-serif; font-size:.9rem; font-weight:800; margin-bottom:8px; }
+.val-card p { font-size:.78rem; color:rgba(255,255,255,.45); line-height:1.75; }
+
+/* CTA */
+.about-cta { background:var(--dark); border-top:1px solid rgba(255,193,7,.1); border-bottom:1px solid rgba(255,193,7,.1); padding:80px 0; text-align:center; }
+.about-cta .sec-h2 { margin-bottom:14px; }
+.about-cta .sec-p { margin:0 auto 32px; }
+.about-cta .btns { display:flex; justify-content:center; gap:14px; flex-wrap:wrap; }
+
+@media(max-width:1024px){
+  .story-grid { grid-template-columns:1fr; gap:48px; }
+  .s-accent { display:none; }
+  .stats-inner { grid-template-columns:repeat(2,1fr); }
+  .stat-col { padding:20px; border-right:none; border-bottom:1px solid rgba(10,10,10,.15); }
+  .stat-col:nth-child(2n) { border-right:none; }
+  .team-grid { grid-template-columns:repeat(2,1fr); }
+  .values-grid { grid-template-columns:repeat(2,1fr); }
+}
+@media(max-width:640px){
+  .mission-vision { grid-template-columns:1fr; }
+  .team-grid { grid-template-columns:1fr; }
+  .values-grid { grid-template-columns:1fr; }
+  .stats-inner { grid-template-columns:repeat(2,1fr); }
+}
+</style>
+</head>
+<body>
+<div id="nav-mount"></div>
+
+<!-- PAGE HERO -->
+<div class="page-hero">
+  <div class="page-hero-bg"></div>
+  <div class="page-hero-ov"></div>
+  <div class="page-hero-content">
+    <div class="container">
+      <div class="breadcrumb"><a href="../index.html">Home</a><i class="fas fa-chevron-right"></i><span>About Us</span></div>
+      <h1 class="page-hero h1" style="font-family:'Montserrat',sans-serif;font-size:clamp(2rem,5vw,3.8rem);font-weight:900;letter-spacing:-1.5px;margin-bottom:12px;">Trusted Since Day One</h1>
+      <p style="color:rgba(255,255,255,.6);font-size:.95rem;max-width:520px;line-height:1.8;">Meet the team behind Noble Electricals — certified professionals dedicated to powering Accra safely and reliably.</p>
+    </div>
+  </div>
+</div>
+
+<!-- STORY -->
+<section class="section section--dark">
+  <div class="container">
+    <div class="story-grid">
+      <div class="story-img-stack reveal-l">
+        <div class="s-main">
+          <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80&auto=format" alt="Electrician at work" loading="lazy">
+        </div>
+        <div class="s-accent">
+          <img src="https://images.unsplash.com/photo-1609796037597-2d1a7f84c7a2?w=400&q=80&auto=format" alt="Solar panels" loading="lazy">
+        </div>
+        <div class="s-badge">
+          <div class="n" data-count="10" data-suffix="+">0+</div>
+          <div class="l">YEARS EXPERTISE</div>
+        </div>
+      </div>
+      <div class="story-text reveal-r">
+        <div class="tag-line">Our Story</div>
+        <h2 class="sec-h2">Built on Trust, Powered by Excellence</h2>
+        <div class="divider"></div>
+        <p class="sec-p">Noble Electricals was founded with a simple but powerful mission: to bring certified, reliable, and affordable electrical services to every home and business in Accra. Over a decade later, we remain true to that mission.</p>
+        <p class="sec-p" style="margin-top:14px;">Our team of skilled technicians has completed hundreds of successful projects — from simple household repairs to large-scale commercial installations — always prioritizing safety, neatness, and lasting quality.</p>
+        <div class="mission-vision">
+          <div class="mv-card">
+            <div class="icon-box"><i class="fas fa-bullseye"></i></div>
+            <h4>Our Mission</h4>
+            <p>To deliver safe, professional, and affordable electrical solutions that empower our community.</p>
+          </div>
+          <div class="mv-card">
+            <div class="icon-box"><i class="fas fa-eye"></i></div>
+            <h4>Our Vision</h4>
+            <p>To be Accra's most trusted electrical company, recognized for excellence and integrity.</p>
+          </div>
+        </div>
+        <a href="contact.html" class="btn btn-yellow"><i class="fas fa-phone"></i> Get in Touch Today</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STATS BAND -->
+<div class="stats-band">
+  <div class="container">
+    <div class="stats-inner">
+      <div class="stat-col reveal"><div class="num" data-count="500" data-suffix="+">0+</div><div class="lbl">Projects Completed</div></div>
+      <div class="stat-col reveal" style="transition-delay:.1s"><div class="num" data-count="10" data-suffix="+">0+</div><div class="lbl">Years Experience</div></div>
+      <div class="stat-col reveal" style="transition-delay:.2s"><div class="num" data-count="200" data-suffix="+">0+</div><div class="lbl">Happy Clients</div></div>
+      <div class="stat-col reveal" style="transition-delay:.3s"><div class="num" data-count="98" data-suffix="%">0%</div><div class="lbl">Satisfaction Rate</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- TEAM -->
+<section class="section section--dark">
+  <div class="container">
+    <div class="sec-center reveal" style="text-align:center;margin-bottom:52px">
+      <div class="tag-line" style="justify-content:center">The People</div>
+      <h2 class="sec-h2">Meet Our Expert Team</h2>
+      <p class="sec-p" style="margin:14px auto 0">Every member of our team is fully certified, trained, and committed to delivering exceptional results.</p>
+    </div>
+    <div class="team-grid">
+      <div class="team-card reveal" style="transition-delay:.05s">
+        <div class="team-photo"><i class="fas fa-hard-hat"></i></div>
+        <div class="team-info">
+          <h3>Osman Bilad</h3>
+          <div class="role">Founder & Lead Electrician</div>
+          <p>10+ years of experience in residential, commercial, and industrial electrical installations across Accra.</p>
+        </div>
+      </div>
+      <div class="team-card reveal" style="transition-delay:.1s">
+        <div class="team-photo"><i class="fas fa-hard-hat"></i></div>
+        <div class="team-info">
+          <h3>Senior Technician</h3>
+          <div class="role">Solar & Renewables Specialist</div>
+          <p>Certified solar panel installation expert with hands-on experience in both on-grid and off-grid systems.</p>
+        </div>
+      </div>
+      <div class="team-card reveal" style="transition-delay:.15s">
+        <div class="team-photo"><i class="fas fa-hard-hat"></i></div>
+        <div class="team-info">
+          <h3>Field Technician</h3>
+          <div class="role">Fault Finding & Repairs</div>
+          <p>Specialist in rapid fault diagnosis and precision repairs across residential and commercial properties.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- VALUES -->
+<section class="section section--gray">
+  <div class="container">
+    <div class="sec-center reveal" style="text-align:center;margin-bottom:52px">
+      <div class="tag-line" style="justify-content:center">What Drives Us</div>
+      <h2 class="sec-h2">Our Core Values</h2>
+    </div>
+    <div class="values-grid">
+      <div class="val-card reveal" style="transition-delay:.05s">
+        <div class="val-icon"><i class="fas fa-shield-alt"></i></div>
+        <h4>Safety Above All</h4>
+        <p>Every decision, every installation, every repair — safety is our non-negotiable priority at Noble Electricals.</p>
+      </div>
+      <div class="val-card reveal" style="transition-delay:.1s">
+        <div class="val-icon"><i class="fas fa-star"></i></div>
+        <h4>Excellence in Craft</h4>
+        <p>We take pride in neat, precise workmanship that exceeds expectations on every single job we undertake.</p>
+      </div>
+      <div class="val-card reveal" style="transition-delay:.15s">
+        <div class="val-icon"><i class="fas fa-handshake"></i></div>
+        <h4>Integrity & Honesty</h4>
+        <p>Transparent quotes, honest communication, and no shortcuts. We do what we say and say what we mean.</p>
+      </div>
+      <div class="val-card reveal" style="transition-delay:.2s">
+        <div class="val-icon"><i class="fas fa-users"></i></div>
+        <h4>Community First</h4>
+        <p>As a local Accra business, we're invested in the wellbeing and development of our community.</p>
+      </div>
+      <div class="val-card reveal" style="transition-delay:.25s">
+        <div class="val-icon"><i class="fas fa-sync-alt"></i></div>
+        <h4>Continuous Learning</h4>
+        <p>We stay current with the latest technologies and best practices to deliver modern, efficient solutions.</p>
+      </div>
+      <div class="val-card reveal" style="transition-delay:.3s">
+        <div class="val-icon"><i class="fas fa-heart"></i></div>
+        <h4>Customer Dedication</h4>
+        <p>Your satisfaction is our measure of success. We go above and beyond on every project, every time.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="about-cta">
+  <div class="container">
+    <div class="reveal">
+      <div class="tag-line" style="justify-content:center">Work With Us</div>
+      <h2 class="sec-h2">Ready to Experience the Noble Difference?</h2>
+      <p class="sec-p">Contact our team today and let's talk about your electrical project. Free consultation available.</p>
+      <div class="btns">
+        <a href="tel:0551897182" class="btn btn-yellow"><i class="fas fa-phone"></i> Call Now</a>
+        <a href="contact.html" class="btn btn-outline-y"><i class="fas fa-file-alt"></i> Get Free Quote</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div id="footer-mount"></div>
+<div class="toast"></div>
+<script src="../js/shared.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+  await initShared('About');
+  initCounters();
+});
+</script>
+</body>
+</html>
