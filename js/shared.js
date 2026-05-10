@@ -38,6 +38,12 @@ const DEFAULT_CONTACT_INFO = {
   ciIg: ''
 };
 
+const DEFAULT_FEATURE_FLAGS = {
+  whatsappFloat: true,
+  scrollAnimations: true,
+  contactForm: true
+};
+
 const DEFAULT_SERVICES = [
   { id: 1, icon: 'fa-home', name: 'House Wiring', description: 'Complete residential wiring for new builds and renovations.', status: true, sort_order: 1 },
   { id: 2, icon: 'fa-solar-panel', name: 'Solar Installations', description: 'Expert solar panel setup and integration.', status: true, sort_order: 2 },
@@ -212,6 +218,7 @@ const NobleSite = {
     siteSettings: clone(DEFAULT_SITE_SETTINGS),
     branding: clone(DEFAULT_BRANDING),
     contactInfo: clone(DEFAULT_CONTACT_INFO),
+    featureFlags: clone(DEFAULT_FEATURE_FLAGS),
     services: clone(DEFAULT_SERVICES),
     gallery: clone(DEFAULT_GALLERY),
     testimonials: clone(DEFAULT_TESTIMONIALS),
@@ -229,6 +236,7 @@ const NobleSite = {
     this.state.siteSettings = { ...DEFAULT_SITE_SETTINGS, ...(this.state.siteSettings || {}) };
     this.state.branding = { ...DEFAULT_BRANDING, ...(this.state.branding || {}) };
     this.state.contactInfo = { ...DEFAULT_CONTACT_INFO, ...(this.state.contactInfo || {}) };
+    this.state.featureFlags = { ...DEFAULT_FEATURE_FLAGS, ...(this.state.featureFlags || {}) };
     this.state.services = (this.state.services || []).length ? this.state.services : clone(DEFAULT_SERVICES);
     this.state.gallery = (this.state.gallery || []).length ? this.state.gallery : clone(DEFAULT_GALLERY);
     this.state.testimonials = (this.state.testimonials || []).length ? this.state.testimonials : clone(DEFAULT_TESTIMONIALS);
@@ -240,6 +248,7 @@ const NobleSite = {
       siteSettings: LocalStore.get('siteSettings', clone(DEFAULT_SITE_SETTINGS)),
       branding: LocalStore.get('branding', clone(DEFAULT_BRANDING)),
       contactInfo: LocalStore.get('contactInfo', clone(DEFAULT_CONTACT_INFO)),
+      featureFlags: LocalStore.get('featureFlags', clone(DEFAULT_FEATURE_FLAGS)),
       services: LocalStore.get('services', clone(DEFAULT_SERVICES)),
       gallery: LocalStore.get('gallery', clone(DEFAULT_GALLERY)),
       testimonials: LocalStore.get('testimonials', clone(DEFAULT_TESTIMONIALS)),
@@ -267,6 +276,7 @@ const NobleSite = {
       this.state.siteSettings = { ...DEFAULT_SITE_SETTINGS, ...(settingsMap.siteSettings || {}), ...extractFlatSettings(settingsMap) };
       this.state.branding = { ...DEFAULT_BRANDING, ...(settingsMap.branding || {}) };
       this.state.contactInfo = { ...DEFAULT_CONTACT_INFO, ...(settingsMap.contactInfo || {}) };
+      this.state.featureFlags = { ...DEFAULT_FEATURE_FLAGS, ...(settingsMap.featureFlags || {}) };
       if (settingsMap.logo) this.state.branding.logo = settingsMap.logo;
       this.state.supabaseReady = true;
       this.state.source = 'supabase';
@@ -347,6 +357,7 @@ const NobleSite = {
     LocalStore.set('siteSettings', this.state.siteSettings);
     LocalStore.set('branding', this.state.branding);
     LocalStore.set('contactInfo', this.state.contactInfo);
+    LocalStore.set('featureFlags', this.state.featureFlags);
     LocalStore.set('services', this.state.services);
     LocalStore.set('gallery', this.state.gallery);
     LocalStore.set('testimonials', this.state.testimonials);
@@ -357,6 +368,7 @@ const NobleSite = {
     if (key === 'siteSettings') this.state.siteSettings = { ...this.state.siteSettings, ...value };
     if (key === 'branding') this.state.branding = { ...this.state.branding, ...value };
     if (key === 'contactInfo') this.state.contactInfo = { ...this.state.contactInfo, ...value };
+    if (key === 'featureFlags') this.state.featureFlags = { ...this.state.featureFlags, ...value };
     if (key === 'logo') this.state.branding.logo = value;
     this.persistState();
 
@@ -603,9 +615,9 @@ function buildFooter() {
         </div>
       </div>
     </footer>
-    <a href="https://wa.me/${contact.ciWa}" target="_blank" rel="noreferrer" class="wa-float" title="Chat on WhatsApp">
+    ${NobleSite.state.featureFlags.whatsappFloat !== false ? `<a href="https://wa.me/${contact.ciWa}" target="_blank" rel="noreferrer" class="wa-float" title="Chat on WhatsApp">
       <i class="fab fa-whatsapp"></i>
-    </a>
+    </a>` : ''}
     <div class="toast" id="globalToast"></div>
   `;
 }
@@ -655,10 +667,18 @@ async function initShared(activePage) {
   document.documentElement.style.setProperty('--yellow', NobleSite.state.branding.color || DEFAULT_BRANDING.color);
   applySiteSettings();
   syncContactLinks();
-  initReveal();
+  if (NobleSite.state.featureFlags.scrollAnimations !== false) {
+    initReveal();
+  } else {
+    document.querySelectorAll('.reveal, .reveal-l, .reveal-r').forEach((element) => element.classList.add('in'));
+  }
 }
 
 function initReveal() {
+  if (NobleSite.state?.featureFlags?.scrollAnimations === false) {
+    document.querySelectorAll('.reveal, .reveal-l, .reveal-r').forEach((element) => element.classList.add('in'));
+    return;
+  }
   const elements = document.querySelectorAll('.reveal, .reveal-l, .reveal-r');
   if (!elements.length) return;
   const observer = new IntersectionObserver((entries) => {
@@ -937,6 +957,13 @@ function renderContactPage() {
       <option>Emergency Callout</option>
       <option>Other</option>
     `;
+  }
+
+  const contactForm = document.getElementById('contactForm');
+  const successBox = document.getElementById('successBox');
+  if (contactForm && NobleSite.state.featureFlags.contactForm === false) {
+    contactForm.innerHTML = '<div class="success-box show" style="display:block;padding:20px 0;text-align:left;"><i class="fas fa-info-circle" style="font-size:2rem;color:var(--yellow);margin-bottom:12px;"></i><h4>Contact form is currently unavailable</h4><p>Please call or message Noble Electricals directly using the contact details on this page.</p></div>';
+    if (successBox) successBox.classList.remove('show');
   }
 }
 

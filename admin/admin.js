@@ -113,6 +113,7 @@ async function initAdmin() {
   loadAboutFields();
   loadContactInfoFields();
   loadLogoPreview();
+  loadBrandingFields();
   loadSettingsFields();
   loadDashboard();
   updateSubBadge();
@@ -216,6 +217,14 @@ function loadLogoPreview() {
     showLogoPreview(logo);
     writeValue('logoUrl', logo);
   }
+}
+
+function loadBrandingFields() {
+  const branding = NobleSite.state.branding || {};
+  writeValue('bizName', branding.name || DEFAULT_BRANDING.name);
+  writeValue('bizTag', branding.tag || DEFAULT_BRANDING.tag);
+  writeValue('brandColor', branding.color || DEFAULT_BRANDING.color);
+  if (branding.logo) writeValue('logoUrl', branding.logo);
 }
 
 function applyLogoUrl() {
@@ -601,6 +610,13 @@ function updateSubBadge() {
 function loadSettingsFields() {
   writeValue('sSupaUrl', SUPABASE_URL);
   writeValue('sSupaKey', SUPABASE_ANON);
+  const flags = NobleSite.state.featureFlags || DEFAULT_FEATURE_FLAGS;
+  const wa = document.getElementById('togWa');
+  const anim = document.getElementById('togAnim');
+  const form = document.getElementById('togForm');
+  if (wa) wa.checked = flags.whatsappFloat !== false;
+  if (anim) anim.checked = flags.scrollAnimations !== false;
+  if (form) form.checked = flags.contactForm !== false;
 
   if (NobleSite.state.missingTables.length) {
     setSupabaseStatus(`Connected, but missing tables: ${NobleSite.state.missingTables.join(', ')}`, 'warning');
@@ -614,6 +630,16 @@ function loadSettingsFields() {
 function saveSupabase() {
   loadSettingsFields();
   toast('Project URL and anon key are already wired into the site code.', 'info');
+}
+
+async function saveFeatureFlags() {
+  const payload = {
+    whatsappFloat: document.getElementById('togWa')?.checked !== false,
+    scrollAnimations: document.getElementById('togAnim')?.checked !== false,
+    contactForm: document.getElementById('togForm')?.checked !== false
+  };
+  const result = await NobleSite.saveSetting('featureFlags', payload);
+  toast(result.ok ? 'Feature settings saved!' : 'Feature settings saved locally. Supabase sync failed.', result.ok ? 'success' : 'warning');
 }
 
 async function testSupabase() {

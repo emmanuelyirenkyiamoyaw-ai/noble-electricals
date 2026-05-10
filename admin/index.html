@@ -156,6 +156,14 @@ input,select,textarea,button{font-family:inherit;outline:none;}
 .save-btn.saving{opacity:.7;pointer-events:none;}
 .cancel-btn{background:rgba(255,255,255,.06);color:rgba(255,255,255,.6);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:12px 22px;font-size:.82rem;cursor:pointer;margin-left:10px;transition:.25s;}
 .cancel-btn:hover{background:rgba(255,255,255,.1);}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+.danger-actions{display:flex;gap:10px;flex-wrap:wrap;}
+.danger-btn{background:rgba(231,76,60,.1);border:1px solid rgba(231,76,60,.2);color:#e74c3c;border-radius:8px;padding:10px 20px;font-size:.8rem;cursor:pointer;transition:.25s;}
+.danger-btn:hover{background:rgba(231,76,60,.18);}
+.table-scroll{overflow-x:auto;border-radius:var(--radius);}
+.table-scroll::-webkit-scrollbar{height:10px;}
+.table-scroll::-webkit-scrollbar-thumb{background:rgba(255,193,7,.22);border-radius:999px;}
+.inline-upload{padding:14px;margin:0;display:flex;align-items:center;gap:14px;border-radius:8px;}
 
 /* ── LOGO UPLOAD ── */
 .logo-upload-zone{border:2px dashed rgba(255,193,7,.3);border-radius:var(--radius);padding:36px;text-align:center;cursor:pointer;transition:.25s;position:relative;overflow:hidden;}
@@ -164,10 +172,10 @@ input,select,textarea,button{font-family:inherit;outline:none;}
 .upload-icon{font-size:2.5rem;color:rgba(255,193,7,.4);margin-bottom:12px;}
 .upload-text h4{font-family:'Montserrat',sans-serif;font-size:.9rem;font-weight:800;margin-bottom:4px;}
 .upload-text p{font-size:.75rem;color:rgba(255,255,255,.35);}
-.logo-preview{margin-top:20px;display:flex;align-items:center;gap:16px;}
+.logo-preview{margin-top:20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;}
 .preview-box{width:80px;height:80px;border-radius:10px;border:1px solid rgba(255,193,7,.3);overflow:hidden;display:flex;align-items:center;justify-content:center;background:var(--dark2);font-size:2rem;color:rgba(255,193,7,.3);}
 .preview-box img{width:100%;height:100%;object-fit:cover;}
-.preview-info p{font-size:.78rem;color:var(--text-dim);}
+.preview-info p{font-size:.78rem;color:var(--text-dim);overflow-wrap:anywhere;}
 .preview-info .rem-btn{background:rgba(231,76,60,.1);border:1px solid rgba(231,76,60,.2);color:#e74c3c;border-radius:6px;padding:6px 14px;font-size:.72rem;cursor:pointer;margin-top:8px;transition:.25s;}
 .preview-info .rem-btn:hover{background:rgba(231,76,60,.25);}
 
@@ -178,13 +186,13 @@ input,select,textarea,button{font-family:inherit;outline:none;}
 .hero-img-preview .placeholder p{font-size:.75rem;letter-spacing:1px;}
 
 /* ── SERVICES TABLE ── */
-.admin-table{width:100%;border-collapse:collapse;background:var(--dark);border-radius:var(--radius);overflow:hidden;}
+.admin-table{width:100%;min-width:720px;border-collapse:collapse;background:var(--dark);border-radius:var(--radius);overflow:hidden;}
 .admin-table th{background:rgba(255,193,7,.07);font-family:'Montserrat',sans-serif;font-size:.72rem;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,.5);padding:13px 16px;text-align:left;border-bottom:1px solid rgba(255,255,255,.06);}
 .admin-table td{padding:13px 16px;font-size:.82rem;border-bottom:1px solid rgba(255,255,255,.05);vertical-align:middle;}
 .admin-table tr:last-child td{border:none;}
 .admin-table tr:hover td{background:rgba(255,255,255,.02);}
 .tbl-icon{width:34px;height:34px;border-radius:8px;background:rgba(255,193,7,.1);display:flex;align-items:center;justify-content:center;color:var(--yellow);font-size:.9rem;}
-.tbl-actions{display:flex;gap:6px;}
+.tbl-actions{display:flex;gap:6px;flex-wrap:wrap;}
 .tbl-btn{background:none;border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:6px 12px;font-size:.72rem;cursor:pointer;display:flex;align-items:center;gap:5px;transition:.22s;}
 .tbl-btn.edit{color:var(--yellow);border-color:rgba(255,193,7,.25);}
 .tbl-btn.edit:hover{background:rgba(255,193,7,.1);}
@@ -221,7 +229,7 @@ input,select,textarea,button{font-family:inherit;outline:none;}
 .sub-table-row:hover td{background:rgba(255,193,7,.03);}
 .sub-detail-modal{position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.85);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:.3s;}
 .sub-detail-modal.open{opacity:1;pointer-events:all;}
-.sub-modal-box{background:var(--dark);border:1px solid rgba(255,193,7,.2);border-radius:16px;padding:36px;width:min(90vw,540px);max-height:85vh;overflow-y:auto;position:relative;}
+.sub-modal-box{background:var(--dark);border:1px solid rgba(255,193,7,.2);border-radius:16px;padding:36px;width:min(94vw,540px);max-height:85vh;overflow-y:auto;position:relative;}
 .sub-modal-close{position:absolute;top:16px;right:16px;background:none;border:none;color:rgba(255,255,255,.5);font-size:1.2rem;cursor:pointer;}
 .sub-detail-field{margin-bottom:14px;}
 .sub-detail-field label{font-size:.68rem;font-weight:700;color:rgba(255,255,255,.35);letter-spacing:1px;text-transform:uppercase;display:block;margin-bottom:4px;}
@@ -258,18 +266,32 @@ input,select,textarea,button{font-family:inherit;outline:none;}
   .dash-two{grid-template-columns:1fr;}
   .testi-admin-grid{grid-template-columns:1fr;}
   .gal-admin-grid{grid-template-columns:repeat(2,1fr);}
+  .topbar{padding:0 20px;}
 }
 @media(max-width:768px){
-  #sidebar{transform:translateX(-100%);}
+  #sidebar{transform:translateX(-100%);width:min(88vw,320px);box-shadow:12px 0 30px rgba(0,0,0,.35);}
   #sidebar.mobile-open{transform:translateX(0);}
   #main{margin-left:0;}
+  .topbar{height:auto;padding:14px 16px;flex-wrap:wrap;gap:12px;}
+  .topbar-left,.topbar-right{width:100%;justify-content:space-between;}
+  .topbar-right{gap:10px;flex-wrap:wrap;}
+  .topbar-badge,.view-site-btn{flex:1;justify-content:center;text-align:center;}
   .dash-grid{grid-template-columns:1fr 1fr;}
-  #content{padding:16px;}
+  #content{padding:18px 14px 28px;}
+  .admin-form,.settings-group,.block{padding:20px;}
   .row-2,.row-3{grid-template-columns:1fr;}
   .gal-admin-grid{grid-template-columns:1fr;}
+  .logo-upload-zone{padding:24px 18px;}
+  .btn-row,.danger-actions{flex-direction:column;align-items:stretch;}
+  .btn-row .save-btn,.btn-row .cancel-btn,.danger-actions .danger-btn{width:100%;justify-content:center;margin-left:0;}
+  .inline-upload{flex-direction:column;align-items:flex-start;}
 }
 @media(max-width:480px){
+  .login-box{padding:32px 20px;width:min(100%,360px);}
   .dash-grid{grid-template-columns:1fr;}
+  .page-title{font-size:.92rem;}
+  .hero-img-preview{aspect-ratio:4/3;}
+  .sub-modal-box{padding:24px 18px;}
 }
 </style>
 </head>
@@ -394,7 +416,7 @@ input,select,textarea,button{font-family:inherit;outline:none;}
           </div>
           <input type="url" id="hHeroBgUrl" placeholder="Paste image URL or upload below...">
           <div style="margin-top:10px;">
-            <label class="logo-upload-zone" style="padding:16px;margin-top:0;display:flex;align-items:center;gap:14px;border-radius:8px;">
+            <label class="logo-upload-zone inline-upload" style="padding:16px;">
               <input type="file" accept="image/*" onchange="heroImgUpload(this)">
               <i class="fas fa-upload" style="color:var(--yellow)"></i>
               <span style="font-size:.82rem;color:var(--text-dim)">Upload image from your computer</span>
@@ -436,7 +458,7 @@ input,select,textarea,button{font-family:inherit;outline:none;}
     <div class="panel" id="panel-services">
       <div class="section-title"><i class="fas fa-tools"></i> Manage Services</div>
       <button class="add-btn" onclick="addService()"><i class="fas fa-plus"></i> Add Service</button>
-      <div style="overflow-x:auto">
+      <div class="table-scroll">
         <table class="admin-table" id="servicesTable">
           <thead><tr><th>Icon</th><th>Service Name</th><th>Description</th><th>Status</th><th>Actions</th></tr></thead>
           <tbody id="servicesTbody"></tbody>
@@ -466,7 +488,7 @@ input,select,textarea,button{font-family:inherit;outline:none;}
         </div>
         <div class="fg">
           <label>Or upload image</label>
-          <label class="logo-upload-zone" style="padding:14px;margin:0;display:flex;align-items:center;gap:14px;border-radius:8px;">
+          <label class="logo-upload-zone inline-upload">
             <input type="file" accept="image/*" onchange="galleryImgUpload(this)">
             <i class="fas fa-upload" style="color:var(--yellow)"></i>
             <span style="font-size:.82rem;color:var(--text-dim)">Upload project photo</span>
@@ -524,7 +546,7 @@ input,select,textarea,button{font-family:inherit;outline:none;}
     <!-- ══ SUBMISSIONS ══ -->
     <div class="panel" id="panel-submissions">
       <div class="section-title"><i class="fas fa-inbox"></i> Form Submissions</div>
-      <div style="overflow-x:auto">
+      <div class="table-scroll">
         <table class="admin-table">
           <thead><tr><th>Name</th><th>Phone</th><th>Service</th><th>Date</th><th>Action</th></tr></thead>
           <tbody id="submissionsTbody"></tbody>
@@ -572,8 +594,10 @@ input,select,textarea,button{font-family:inherit;outline:none;}
         <p style="font-size:.8rem;color:var(--text-dim);margin-bottom:16px;">Connect to Supabase to store form submissions and site settings in the cloud.</p>
         <div class="fg"><label>Supabase Project URL</label><input type="url" id="sSupaUrl" placeholder="https://xxxx.supabase.co"></div>
         <div class="fg"><label>Supabase Anon Key</label><input type="text" id="sSupaKey" placeholder="eyJhbGci..."></div>
-        <button class="save-btn" onclick="saveSupabase()"><i class="fas fa-plug"></i> Connect Supabase</button>
-        <button class="cancel-btn" onclick="testSupabase()"><i class="fas fa-vial"></i> Test Connection</button>
+        <div class="btn-row">
+          <button class="save-btn" onclick="saveSupabase()"><i class="fas fa-plug"></i> Connect Supabase</button>
+          <button class="cancel-btn" onclick="testSupabase()"><i class="fas fa-vial"></i> Test Connection</button>
+        </div>
         <div style="margin-top:14px" id="supaStatus"></div>
       </div>
 
@@ -581,15 +605,15 @@ input,select,textarea,button{font-family:inherit;outline:none;}
         <h3><i class="fas fa-toggle-on"></i> Site Features</h3>
         <div class="toggle-row">
           <div class="tinfo"><strong>WhatsApp Float Button</strong><span>Show floating WhatsApp chat button</span></div>
-          <label class="toggle"><input type="checkbox" id="togWa" checked><span class="toggle-slider"></span></label>
+          <label class="toggle"><input type="checkbox" id="togWa" checked onchange="saveFeatureFlags()"><span class="toggle-slider"></span></label>
         </div>
         <div class="toggle-row">
           <div class="tinfo"><strong>Scroll Animations</strong><span>Reveal animations on scroll</span></div>
-          <label class="toggle"><input type="checkbox" id="togAnim" checked><span class="toggle-slider"></span></label>
+          <label class="toggle"><input type="checkbox" id="togAnim" checked onchange="saveFeatureFlags()"><span class="toggle-slider"></span></label>
         </div>
         <div class="toggle-row">
           <div class="tinfo"><strong>Contact Form</strong><span>Show contact form on site</span></div>
-          <label class="toggle"><input type="checkbox" id="togForm" checked><span class="toggle-slider"></span></label>
+          <label class="toggle"><input type="checkbox" id="togForm" checked onchange="saveFeatureFlags()"><span class="toggle-slider"></span></label>
         </div>
       </div>
 
@@ -605,8 +629,10 @@ input,select,textarea,button{font-family:inherit;outline:none;}
       <div class="settings-group">
         <h3><i class="fas fa-trash-alt"></i> Danger Zone</h3>
         <p style="font-size:.8rem;color:rgba(255,255,255,.4);margin-bottom:16px;">Irreversible actions — use with caution.</p>
-        <button style="background:rgba(231,76,60,.1);border:1px solid rgba(231,76,60,.2);color:#e74c3c;border-radius:8px;padding:10px 20px;font-size:.8rem;cursor:pointer;margin-right:10px;" onclick="clearSubmissions()"><i class="fas fa-trash"></i> Clear All Submissions</button>
-        <button style="background:rgba(231,76,60,.1);border:1px solid rgba(231,76,60,.2);color:#e74c3c;border-radius:8px;padding:10px 20px;font-size:.8rem;cursor:pointer;" onclick="resetAll()"><i class="fas fa-redo"></i> Reset All Settings</button>
+        <div class="danger-actions">
+          <button class="danger-btn" onclick="clearSubmissions()"><i class="fas fa-trash"></i> Clear All Submissions</button>
+          <button class="danger-btn" onclick="resetAll()"><i class="fas fa-redo"></i> Reset All Settings</button>
+        </div>
       </div>
     </div>
 
