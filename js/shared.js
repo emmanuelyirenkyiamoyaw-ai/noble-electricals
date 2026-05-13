@@ -8,6 +8,14 @@ const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
 const IS_SUBPAGE = window.location.pathname.includes('/pages/') || window.location.pathname.includes('/admin/');
 const ROOT = IS_SUBPAGE ? '../' : '';
 
+const DEFAULT_FIXED_IMAGES = {
+  homeAboutMain: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80&auto=format',
+  homeAboutAccent: 'https://images.unsplash.com/photo-1609796037597-2d1a7f84c7a2?w=400&q=80&auto=format',
+  homeWhyImage: 'https://images.unsplash.com/photo-1574158622682-e40e69881006?w=700&q=80&auto=format',
+  aboutStoryMain: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80&auto=format',
+  aboutStoryAccent: 'https://images.unsplash.com/photo-1609796037597-2d1a7f84c7a2?w=400&q=80&auto=format'
+};
+
 const DEFAULT_SITE_SETTINGS = {
   heroHeadline: 'Powering Homes.<br><span>Building</span><br>Futures.',
   heroSubtext: 'Noble Electricals and Estates Developers delivers reliable electrical solutions and quality estate development services across Accra and surrounding areas.',
@@ -24,6 +32,7 @@ const DEFAULT_SITE_SETTINGS = {
   aboutClients: '200+',
   footerCreditText: 'Created and developed by Galaxy Studio',
   footerCreditLink: 'https://galaxystudio.site',
+  siteImages: { ...DEFAULT_FIXED_IMAGES },
   teamMembers: [
     {
       id: 1,
@@ -412,6 +421,7 @@ const NobleSite = {
 
   mergeDefaults() {
     this.state.siteSettings = { ...DEFAULT_SITE_SETTINGS, ...(this.state.siteSettings || {}) };
+    this.state.siteSettings.siteImages = { ...DEFAULT_FIXED_IMAGES, ...(this.state.siteSettings.siteImages || {}) };
     this.state.siteSettings.teamMembers = (this.state.siteSettings.teamMembers || DEFAULT_SITE_SETTINGS.teamMembers).map(normalizeTeamMember).filter(Boolean);
     this.state.branding = { ...DEFAULT_BRANDING, ...(this.state.branding || {}) };
     this.state.contactInfo = { ...DEFAULT_CONTACT_INFO, ...(this.state.contactInfo || {}) };
@@ -786,7 +796,7 @@ function buildFooter() {
         <div class="footer-bottom">
           <p>&copy; ${new Date().getFullYear()} ${branding.name}. All rights reserved.</p>
           <p class="fy">${branding.tag}</p>
-          <p class="fy">${creditLink ? `<a href="${creditLink}" target="_blank" rel="noreferrer">${formatFooterCredit(creditText)}</a>` : formatFooterCredit(creditText)}</p>
+          <p class="fy">${buildFooterCreditHtml(creditText, creditLink)}</p>
         </div>
       </div>
     </footer>
@@ -936,13 +946,27 @@ function toastColor(type) {
 
 function formatFooterCredit(text) {
   const value = String(text || '').trim();
-  if (!value) return '';
-  if (!/galaxy studio/i.test(value)) return value;
-  return value.replace(/Galaxy Studio/ig, '<span style="color:var(--yellow)">Galaxy Studio</span>');
+  return value || DEFAULT_SITE_SETTINGS.footerCreditText;
+}
+
+function buildFooterCreditHtml(text, link) {
+  const creditText = formatFooterCredit(text);
+  const match = creditText.match(/galaxy studio/i);
+  if (!match) return creditText;
+  const start = match.index ?? 0;
+  const end = start + match[0].length;
+  const prefix = creditText.slice(0, start);
+  const studioText = creditText.slice(start, end);
+  const suffix = creditText.slice(end);
+  const studioMarkup = link
+    ? `<a href="${link}" target="_blank" rel="noreferrer" style="color:var(--yellow)">${studioText}</a>`
+    : `<span style="color:var(--yellow)">${studioText}</span>`;
+  return `${prefix}${studioMarkup}${suffix}`;
 }
 
 function applySiteSettings() {
   const data = NobleSite.state.siteSettings;
+  const siteImages = { ...DEFAULT_FIXED_IMAGES, ...(data.siteImages || {}) };
 
   const heroHeadline = document.getElementById('heroHeadline');
   if (heroHeadline && data.heroHeadline) heroHeadline.innerHTML = data.heroHeadline;
@@ -973,6 +997,17 @@ function applySiteSettings() {
 
   const aboutClients = document.getElementById('aboutClients');
   if (aboutClients) aboutClients.textContent = data.aboutClients || DEFAULT_SITE_SETTINGS.aboutClients;
+
+  [
+    ['homeAboutMainImage', siteImages.homeAboutMain],
+    ['homeAboutAccentImage', siteImages.homeAboutAccent],
+    ['homeWhyImage', siteImages.homeWhyImage],
+    ['aboutStoryMainImage', siteImages.aboutStoryMain],
+    ['aboutStoryAccentImage', siteImages.aboutStoryAccent]
+  ].forEach(([id, src]) => {
+    const image = document.getElementById(id);
+    if (image && src) image.src = resolveAssetPath(src);
+  });
 
   const primaryButton = document.querySelector('.hero-btns .btn-yellow');
   if (primaryButton) {

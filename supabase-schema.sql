@@ -20,10 +20,13 @@ create table if not exists submissions (
 create table if not exists services (
   id serial primary key,
   icon text default 'fa-bolt',
+  icon_label text,
   name text not null,
   description text,
+  image_url text,
   status boolean default true,
   sort_order int default 0,
+  show_on_homepage boolean default true,
   created_at timestamptz default now()
 );
 
@@ -47,13 +50,17 @@ create table if not exists testimonials (
   created_at timestamptz default now()
 );
 
+alter table services add column if not exists icon_label text;
+alter table services add column if not exists image_url text;
+alter table services add column if not exists show_on_homepage boolean default true;
+
 insert into services (icon, name, description, sort_order)
 values
-  ('fa-home', 'House Wiring', 'Complete residential wiring for new builds and renovations.', 1),
+  ('fa-house', 'House Wiring', 'Complete residential wiring for new builds and renovations.', 1),
   ('fa-solar-panel', 'Solar Installations', 'Expert solar panel setup and integration.', 2),
-  ('fa-search', 'Fault Finding & Repairs', 'Fast diagnosis and lasting repairs for any electrical fault.', 3),
+  ('fa-magnifying-glass', 'Fault Finding & Repairs', 'Fast diagnosis and lasting repairs for any electrical fault.', 3),
   ('fa-lightbulb', 'Lighting & Maintenance', 'Professional lighting design and installation.', 4),
-  ('fa-plug', 'Electrical Upgrades', 'Panel upgrades, rewiring and smart home integration.', 5),
+  ('fa-plug-circle-bolt', 'Electrical Upgrades', 'Panel upgrades, rewiring and smart home integration.', 5),
   ('fa-building', 'Commercial Electrical', 'Full electrical solutions for offices and industrial facilities.', 6)
 on conflict do nothing;
 
