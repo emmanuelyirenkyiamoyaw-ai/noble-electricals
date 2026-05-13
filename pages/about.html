@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>About Us — Noble Electricals</title>
+<title>About Us - Noble Electricals and Estates Developers</title>
+<link rel="icon" href="../logo.png">
 <link rel="stylesheet" href="../css/global.css">
 <link rel="stylesheet" href="../css/nav-footer.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
@@ -65,7 +66,8 @@
 .team-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:24px; }
 .team-card { background:var(--dark); border:1px solid rgba(255,255,255,.07); border-radius:var(--radius); overflow:hidden; transition:.3s; }
 .team-card:hover { border-color:rgba(255,193,7,.3); transform:translateY(-4px); }
-.team-photo { aspect-ratio:1; background:var(--dark2); display:flex; align-items:center; justify-content:center; font-size:4rem; color:rgba(255,193,7,.25); }
+.team-photo { aspect-ratio:1; background:var(--dark2); display:flex; align-items:center; justify-content:center; font-size:4rem; color:rgba(255,193,7,.25); overflow:hidden; }
+.team-photo img { width:100%; height:100%; object-fit:cover; display:block; }
 .team-info { padding:20px; }
 .team-info h3 { font-family:'Montserrat',sans-serif; font-size:.95rem; font-weight:800; margin-bottom:4px; }
 .team-info .role { font-size:.75rem; color:var(--yellow); font-weight:600; margin-bottom:8px; }
@@ -113,8 +115,8 @@
   <div class="page-hero-content">
     <div class="container">
       <div class="breadcrumb"><a href="../index.html">Home</a><i class="fas fa-chevron-right"></i><span>About Us</span></div>
-      <h1 class="page-hero h1" style="font-family:'Montserrat',sans-serif;font-size:clamp(2rem,5vw,3.8rem);font-weight:900;letter-spacing:-1.5px;margin-bottom:12px;">Trusted Since Day One</h1>
-      <p style="color:rgba(255,255,255,.6);font-size:.95rem;max-width:520px;line-height:1.8;">Meet the team behind Noble Electricals — certified professionals dedicated to powering Accra safely and reliably.</p>
+      <h1 class="page-hero h1" style="font-family:'Montserrat',sans-serif;font-size:clamp(2rem,5vw,3.8rem);font-weight:900;letter-spacing:-1.5px;margin-bottom:12px;">Powering Homes. Building Futures.</h1>
+      <p style="color:rgba(255,255,255,.6);font-size:.95rem;max-width:520px;line-height:1.8;">Noble Electricals and Estates Developers is committed to delivering reliable electrical solutions and quality estate development services across Accra and surrounding areas.</p>
     </div>
   </div>
 </div>
@@ -136,21 +138,21 @@
         </div>
       </div>
       <div class="story-text reveal-r">
-        <div class="tag-line">Our Story</div>
-        <h2 class="sec-h2">Built on Trust, Powered by Excellence</h2>
+        <div class="tag-line">About Us</div>
+        <h2 class="sec-h2">Delivering Excellence in Electrical Engineering & Property Development</h2>
         <div class="divider"></div>
-        <p class="sec-p">Noble Electricals was founded with a simple but powerful mission: to bring certified, reliable, and affordable electrical services to every home and business in Accra. Over a decade later, we remain true to that mission.</p>
-        <p class="sec-p" style="margin-top:14px;">Our team of skilled technicians has completed hundreds of successful projects — from simple household repairs to large-scale commercial installations — always prioritizing safety, neatness, and lasting quality.</p>
+        <p class="sec-p">Noble Electricals and Estates Developers is a professional electrical engineering and property development company committed to delivering reliable electrical solutions and quality estate development services across Accra and surrounding areas.</p>
+        <p class="sec-p" style="margin-top:14px;">The company specializes in residential and commercial electrical works, construction support, land development, and property-related services, with a focus on safety, quality workmanship, professionalism, affordability, and customer satisfaction in every project.</p>
         <div class="mission-vision">
           <div class="mv-card">
             <div class="icon-box"><i class="fas fa-bullseye"></i></div>
             <h4>Our Mission</h4>
-            <p>To deliver safe, professional, and affordable electrical solutions that empower our community.</p>
+            <p>Your Safety, Our Priority.</p>
           </div>
           <div class="mv-card">
             <div class="icon-box"><i class="fas fa-eye"></i></div>
             <h4>Our Vision</h4>
-            <p>To be Accra's most trusted electrical company, recognized for excellence and integrity.</p>
+            <p>To keep delivering excellence in electrical engineering and property development.</p>
           </div>
         </div>
         <a href="contact.html" class="btn btn-yellow"><i class="fas fa-phone"></i> Get in Touch Today</a>
@@ -179,32 +181,7 @@
       <h2 class="sec-h2">Meet Our Expert Team</h2>
       <p class="sec-p" style="margin:14px auto 0">Every member of our team is fully certified, trained, and committed to delivering exceptional results.</p>
     </div>
-    <div class="team-grid">
-      <div class="team-card reveal" style="transition-delay:.05s">
-        <div class="team-photo"><i class="fas fa-hard-hat"></i></div>
-        <div class="team-info">
-          <h3>Osman Bilad</h3>
-          <div class="role">Founder & Lead Electrician</div>
-          <p>10+ years of experience in residential, commercial, and industrial electrical installations across Accra.</p>
-        </div>
-      </div>
-      <div class="team-card reveal" style="transition-delay:.1s">
-        <div class="team-photo"><i class="fas fa-hard-hat"></i></div>
-        <div class="team-info">
-          <h3>Senior Technician</h3>
-          <div class="role">Solar & Renewables Specialist</div>
-          <p>Certified solar panel installation expert with hands-on experience in both on-grid and off-grid systems.</p>
-        </div>
-      </div>
-      <div class="team-card reveal" style="transition-delay:.15s">
-        <div class="team-photo"><i class="fas fa-hard-hat"></i></div>
-        <div class="team-info">
-          <h3>Field Technician</h3>
-          <div class="role">Fault Finding & Repairs</div>
-          <p>Specialist in rapid fault diagnosis and precision repairs across residential and commercial properties.</p>
-        </div>
-      </div>
-    </div>
+    <div class="team-grid" id="aboutTeamGrid"></div>
   </div>
 </section>
 
@@ -212,39 +189,44 @@
 <section class="section section--gray">
   <div class="container">
     <div class="sec-center reveal" style="text-align:center;margin-bottom:52px">
-      <div class="tag-line" style="justify-content:center">What Drives Us</div>
+      <div class="tag-line" style="justify-content:center">Core Values</div>
       <h2 class="sec-h2">Our Core Values</h2>
     </div>
     <div class="values-grid">
       <div class="val-card reveal" style="transition-delay:.05s">
         <div class="val-icon"><i class="fas fa-shield-alt"></i></div>
-        <h4>Safety Above All</h4>
-        <p>Every decision, every installation, every repair — safety is our non-negotiable priority at Noble Electricals.</p>
+        <h4>Safe</h4>
+        <p>We make safety a priority in every electrical and property development project.</p>
       </div>
       <div class="val-card reveal" style="transition-delay:.1s">
         <div class="val-icon"><i class="fas fa-star"></i></div>
-        <h4>Excellence in Craft</h4>
-        <p>We take pride in neat, precise workmanship that exceeds expectations on every single job we undertake.</p>
+        <h4>Neat</h4>
+        <p>We value neat workmanship and organized delivery from start to finish.</p>
       </div>
       <div class="val-card reveal" style="transition-delay:.15s">
         <div class="val-icon"><i class="fas fa-handshake"></i></div>
-        <h4>Integrity & Honesty</h4>
-        <p>Transparent quotes, honest communication, and no shortcuts. We do what we say and say what we mean.</p>
+        <h4>Reliable</h4>
+        <p>Clients can count on dependable service, consistent communication, and solid results.</p>
       </div>
       <div class="val-card reveal" style="transition-delay:.2s">
         <div class="val-icon"><i class="fas fa-users"></i></div>
-        <h4>Community First</h4>
-        <p>As a local Accra business, we're invested in the wellbeing and development of our community.</p>
+        <h4>Professional</h4>
+        <p>We approach every project with professionalism, discipline, and respect for our clients.</p>
       </div>
       <div class="val-card reveal" style="transition-delay:.25s">
         <div class="val-icon"><i class="fas fa-sync-alt"></i></div>
-        <h4>Continuous Learning</h4>
-        <p>We stay current with the latest technologies and best practices to deliver modern, efficient solutions.</p>
+        <h4>Affordable</h4>
+        <p>We aim to provide cost-conscious solutions without compromising standards.</p>
       </div>
       <div class="val-card reveal" style="transition-delay:.3s">
         <div class="val-icon"><i class="fas fa-heart"></i></div>
-        <h4>Customer Dedication</h4>
-        <p>Your satisfaction is our measure of success. We go above and beyond on every project, every time.</p>
+        <h4>Quality Service</h4>
+        <p>We are committed to quality service in electrical works, construction support, and land development.</p>
+      </div>
+      <div class="val-card reveal" style="transition-delay:.35s">
+        <div class="val-icon"><i class="fas fa-smile"></i></div>
+        <h4>Customer Satisfaction</h4>
+        <p>Customer satisfaction remains a key measure of success in every service we deliver.</p>
       </div>
     </div>
   </div>
@@ -255,8 +237,8 @@
   <div class="container">
     <div class="reveal">
       <div class="tag-line" style="justify-content:center">Work With Us</div>
-      <h2 class="sec-h2">Ready to Experience the Noble Difference?</h2>
-      <p class="sec-p">Contact our team today and let's talk about your electrical project. Free consultation available.</p>
+      <h2 class="sec-h2">Your Safety, Our Priority</h2>
+      <p class="sec-p">Contact Noble Electricals and Estates Developers for reliable electrical solutions and quality estate development services.</p>
       <div class="btns">
         <a href="tel:0551897182" class="btn btn-yellow"><i class="fas fa-phone"></i> Call Now</a>
         <a href="contact.html" class="btn btn-outline-y"><i class="fas fa-file-alt"></i> Get Free Quote</a>
@@ -271,6 +253,7 @@
 <script>
 document.addEventListener('DOMContentLoaded', async () => {
   await initShared('About');
+  renderAboutTeam('#aboutTeamGrid');
   initCounters();
 });
 </script>

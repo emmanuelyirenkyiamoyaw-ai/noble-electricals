@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Admin Panel — Noble Electricals</title>
+<link rel="icon" href="../logo.png">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800;900&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -205,6 +206,27 @@ input,select,textarea,button{font-family:inherit;outline:none;}
 .tbl-status.off{background:rgba(231,76,60,.12);color:#e74c3c;}
 .add-btn{background:var(--yellow);color:var(--black);border:none;border-radius:8px;padding:9px 20px;font-family:'Montserrat',sans-serif;font-weight:800;font-size:.78rem;cursor:pointer;display:inline-flex;align-items:center;gap:7px;transition:.25s;margin-bottom:16px;}
 .add-btn:hover{background:var(--yellow-dk);}
+.editor-shell{display:grid;grid-template-columns:1.2fr .8fr;gap:16px;align-items:start;}
+.editor-card{background:var(--dark);border:1px solid rgba(255,255,255,.07);border-radius:var(--radius);padding:22px;}
+.editor-card h4{font-family:'Montserrat',sans-serif;font-size:.88rem;font-weight:800;margin-bottom:14px;}
+.editor-note{font-size:.76rem;color:rgba(255,255,255,.4);margin-bottom:16px;line-height:1.6;}
+.status-check{display:flex;align-items:center;gap:10px;padding:12px 14px;border:1px solid rgba(255,255,255,.08);border-radius:8px;background:rgba(255,255,255,.03);}
+.status-check input{width:auto;accent-color:var(--yellow);}
+.status-check span{font-size:.8rem;color:rgba(255,255,255,.75);}
+.mini-preview{width:54px;height:54px;border-radius:12px;background:rgba(255,193,7,.1);display:flex;align-items:center;justify-content:center;color:var(--yellow);font-size:1.1rem;border:1px solid rgba(255,193,7,.25);}
+.mini-preview img{width:100%;height:100%;object-fit:cover;border-radius:inherit;}
+.icon-picker-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:12px;}
+.icon-choice{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:12px 8px;color:rgba(255,255,255,.72);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:8px;transition:.22s;text-align:center;}
+.icon-choice i{font-size:1rem;color:var(--yellow);}
+.icon-choice small{font-size:.66rem;line-height:1.4;}
+.icon-choice.active,.icon-choice:hover{border-color:rgba(255,193,7,.35);background:rgba(255,193,7,.08);color:var(--white);}
+.service-thumb-preview,.service-thumb-preview img{width:100%;border-radius:12px;}
+.service-thumb-preview{min-height:180px;border:1px solid rgba(255,255,255,.08);background:var(--dark2);overflow:hidden;display:flex;align-items:center;justify-content:center;}
+.service-thumb-preview img{display:block;aspect-ratio:16/10;object-fit:cover;}
+.service-card-preview{display:flex;gap:12px;align-items:center;padding:12px;border-radius:12px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);}
+.service-card-preview .copy strong{display:block;font-size:.82rem;}
+.service-card-preview .copy span{display:block;margin-top:3px;font-size:.72rem;color:var(--text-dim);}
+.panel-helper{font-size:.77rem;color:var(--text-dim);margin:-6px 0 18px;line-height:1.7;}
 
 /* ── TESTIMONIALS ── */
 .testi-admin-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;}
@@ -214,6 +236,7 @@ input,select,textarea,button{font-family:inherit;outline:none;}
 .testi-admin-card .ta-author{font-size:.78rem;font-weight:600;}
 .testi-admin-card .ta-role{font-size:.7rem;color:rgba(255,255,255,.35);}
 .testi-admin-card .ta-actions{position:absolute;top:14px;right:14px;display:flex;gap:6px;}
+.testi-admin-card.inactive{opacity:.6;}
 
 /* ── GALLERY ADMIN ── */
 .gal-admin-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
@@ -223,6 +246,27 @@ input,select,textarea,button{font-family:inherit;outline:none;}
 .gal-admin-info h4{font-family:'Montserrat',sans-serif;font-size:.82rem;font-weight:800;margin-bottom:3px;}
 .gal-admin-info span{font-size:.7rem;color:rgba(255,255,255,.4);}
 .gal-admin-actions{display:flex;gap:6px;margin-top:10px;}
+.image-preview{width:100%;aspect-ratio:16/10;border-radius:12px;border:1px solid rgba(255,255,255,.08);background:var(--dark2);display:flex;align-items:center;justify-content:center;overflow:hidden;}
+.image-preview img{width:100%;height:100%;object-fit:cover;}
+.image-preview .placeholder{display:flex;flex-direction:column;align-items:center;gap:10px;color:rgba(255,255,255,.22);font-size:2rem;}
+.image-preview .placeholder p{font-size:.72rem;letter-spacing:1px;}
+.gallery-stack{display:grid;grid-template-columns:1.1fr .9fr;gap:20px;align-items:start;}
+.bulk-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:18px 0 12px;}
+.bulk-toolbar .hint{font-size:.75rem;color:var(--text-dim);}
+.check-chip{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:999px;padding:8px 12px;font-size:.75rem;color:rgba(255,255,255,.72);}
+.check-chip input{accent-color:var(--yellow);}
+.gal-admin-card.selected{border-color:rgba(255,193,7,.5);box-shadow:0 0 0 2px rgba(255,193,7,.12);}
+.gal-select{position:absolute;top:10px;left:10px;z-index:2;}
+.gal-select input{width:18px;height:18px;accent-color:var(--yellow);}
+.team-admin-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:18px;}
+.team-admin-card{background:var(--dark);border:1px solid rgba(255,255,255,.07);border-radius:var(--radius);overflow:hidden;}
+.team-admin-photo{aspect-ratio:1;display:flex;align-items:center;justify-content:center;background:var(--dark2);color:rgba(255,193,7,.3);font-size:2.4rem;overflow:hidden;}
+.team-admin-photo img{width:100%;height:100%;object-fit:cover;display:block;}
+.team-admin-info{padding:14px;}
+.team-admin-info strong{display:block;font-size:.82rem;}
+.team-admin-info span{display:block;margin-top:4px;font-size:.72rem;color:var(--yellow);}
+.team-admin-info p{margin-top:8px;font-size:.74rem;color:var(--text-dim);line-height:1.6;}
+.team-admin-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;}
 
 /* ── SUBMISSIONS ── */
 .sub-table-row{cursor:pointer;}
@@ -266,6 +310,7 @@ input,select,textarea,button{font-family:inherit;outline:none;}
   .dash-two{grid-template-columns:1fr;}
   .testi-admin-grid{grid-template-columns:1fr;}
   .gal-admin-grid{grid-template-columns:repeat(2,1fr);}
+  .editor-shell{grid-template-columns:1fr;}
   .topbar{padding:0 20px;}
 }
 @media(max-width:768px){
@@ -281,6 +326,7 @@ input,select,textarea,button{font-family:inherit;outline:none;}
   .admin-form,.settings-group,.block{padding:20px;}
   .row-2,.row-3{grid-template-columns:1fr;}
   .gal-admin-grid{grid-template-columns:1fr;}
+  .gallery-stack,.icon-picker-grid{grid-template-columns:1fr 1fr;}
   .logo-upload-zone{padding:24px 18px;}
   .btn-row,.danger-actions{flex-direction:column;align-items:stretch;}
   .btn-row .save-btn,.btn-row .cancel-btn,.danger-actions .danger-btn{width:100%;justify-content:center;margin-left:0;}
@@ -292,6 +338,7 @@ input,select,textarea,button{font-family:inherit;outline:none;}
   .page-title{font-size:.92rem;}
   .hero-img-preview{aspect-ratio:4/3;}
   .sub-modal-box{padding:24px 18px;}
+  .icon-picker-grid{grid-template-columns:1fr 1fr;}
 }
 </style>
 </head>
@@ -439,8 +486,8 @@ input,select,textarea,button{font-family:inherit;outline:none;}
     <div class="panel" id="panel-about">
       <div class="section-title"><i class="fas fa-users"></i> About Section</div>
       <div class="admin-form">
-        <div class="fg"><label>Section Title</label><input type="text" id="aTitle" value="Trusted Electrical Experts in Accra"></div>
-        <div class="fg"><label>Main Text</label><textarea id="aText" style="min-height:120px" placeholder="At Noble Electricals..."></textarea></div>
+        <div class="fg"><label>Section Title</label><input type="text" id="aTitle" value="Delivering Excellence in Electrical Engineering & Property Development"></div>
+        <div class="fg"><label>Main Text</label><textarea id="aText" style="min-height:120px" placeholder="Noble Electricals and Estates Developers is a professional electrical engineering and property development company..."></textarea></div>
         <div class="row-3">
           <div class="fg"><label>Stat 1 — Number</label><input type="text" id="aStat1" placeholder="500+"></div>
           <div class="fg"><label>Stat 1 — Label</label><input type="text" id="aStat1l" placeholder="Projects"></div>
@@ -452,49 +499,176 @@ input,select,textarea,button{font-family:inherit;outline:none;}
         </div>
         <button class="save-btn" onclick="saveAbout()"><i class="fas fa-save"></i> Save About Section</button>
       </div>
+      <div class="admin-form" style="margin-top:20px;">
+        <h4 id="teamEditorTitle" style="font-family:'Montserrat',sans-serif;font-size:.88rem;font-weight:800;margin-bottom:16px;">Add Team Member</h4>
+        <input type="hidden" id="tmEditIndex" value="">
+        <div class="row-2">
+          <div class="fg"><label>Full Name</label><input type="text" id="tmName" placeholder="Osman Bilad"></div>
+          <div class="fg"><label>Role / Position</label><input type="text" id="tmRole" placeholder="Founder & Lead Electrician"></div>
+        </div>
+        <div class="fg"><label>Short Bio</label><textarea id="tmBio" placeholder="Brief summary about this team member"></textarea></div>
+        <div class="row-2">
+          <div class="fg"><label>Image URL</label><input type="url" id="tmImage" placeholder="https://..."></div>
+          <div class="fg"><label>Upload Image</label>
+            <label class="logo-upload-zone inline-upload">
+              <input type="file" accept="image/*" onchange="teamImageUpload(this)">
+              <i class="fas fa-upload" style="color:var(--yellow)"></i>
+              <span style="font-size:.82rem;color:var(--text-dim)">Upload team member photo</span>
+            </label>
+          </div>
+        </div>
+        <div class="row-2">
+          <div class="fg"><label>Fallback Icon</label><input type="text" id="tmIcon" value="fa-hard-hat" placeholder="fa-hard-hat"></div>
+          <div class="fg">
+            <label>Image Preview</label>
+            <div class="service-thumb-preview" id="tmPreview">
+              <div class="placeholder"><i class="fas fa-user"></i><p>No image selected</p></div>
+            </div>
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="save-btn" onclick="submitTeamMemberForm()"><i class="fas fa-save"></i> Save Team Member</button>
+          <button class="cancel-btn" onclick="resetTeamMemberForm()">Clear</button>
+        </div>
+        <div class="team-admin-grid" id="teamAdminGrid"></div>
+      </div>
     </div>
 
     <!-- ══ SERVICES ══ -->
     <div class="panel" id="panel-services">
       <div class="section-title"><i class="fas fa-tools"></i> Manage Services</div>
-      <button class="add-btn" onclick="addService()"><i class="fas fa-plus"></i> Add Service</button>
-      <div class="table-scroll">
-        <table class="admin-table" id="servicesTable">
-          <thead><tr><th>Icon</th><th>Service Name</th><th>Description</th><th>Status</th><th>Actions</th></tr></thead>
-          <tbody id="servicesTbody"></tbody>
-        </table>
+      <p class="panel-helper">Every service already on the site shows here. You can edit, hide, delete, attach an image, pick an icon, and choose whether it appears on the homepage.</p>
+      <div class="editor-shell">
+        <div>
+          <button class="add-btn" onclick="openServiceEditor()"><i class="fas fa-plus"></i> Add Service</button>
+          <div class="table-scroll">
+            <table class="admin-table" id="servicesTable">
+              <thead><tr><th>Icon</th><th>Service Name</th><th>Description</th><th>Homepage</th><th>Status</th><th>Actions</th></tr></thead>
+              <tbody id="servicesTbody"></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="editor-card">
+          <h4 id="serviceEditorTitle">Service Editor</h4>
+          <p class="editor-note">Add or update services here, then save once. No browser popups.</p>
+          <input type="hidden" id="svcEditIndex" value="">
+          <div class="row-2">
+            <div class="fg"><label>Service Name</label><input type="text" id="svcName" placeholder="House Wiring"></div>
+            <div class="fg"><label>Icon Class</label><input type="text" id="svcIcon" placeholder="fa-bolt"></div>
+          </div>
+          <div class="fg">
+            <label>Pick an Icon</label>
+            <div class="icon-picker-grid" id="serviceIconPicker"></div>
+          </div>
+          <div class="fg"><label>Description</label><textarea id="svcDescription" placeholder="Describe this service clearly"></textarea></div>
+          <div class="row-2">
+            <div class="fg"><label>Image URL</label><input type="url" id="svcImage" placeholder="https://..."></div>
+            <div class="fg"><label>Upload Service Image</label>
+              <label class="logo-upload-zone inline-upload">
+                <input type="file" accept="image/*" onchange="serviceImgUpload(this)">
+                <i class="fas fa-upload" style="color:var(--yellow)"></i>
+                <span style="font-size:.82rem;color:var(--text-dim)">Upload service photo</span>
+              </label>
+            </div>
+          </div>
+          <div class="fg">
+            <label>Service Image Preview</label>
+            <div class="service-thumb-preview" id="svcImagePreview">
+              <div class="placeholder"><i class="fas fa-image"></i><p>No image selected</p></div>
+            </div>
+          </div>
+          <div class="row-2">
+            <div class="fg"><label>Sort Order</label><input type="number" id="svcSortOrder" min="1" placeholder="1"></div>
+            <div class="fg"><label>Preview</label>
+              <div class="service-card-preview">
+                <div class="mini-preview" id="svcIconPreview"><i class="fas fa-bolt"></i></div>
+                <div class="copy">
+                  <strong id="svcPreviewName">Service Preview</strong>
+                  <span id="svcPreviewText">Choose an icon and image for this service.</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <label class="status-check">
+            <input type="checkbox" id="svcStatus" checked>
+            <span>Show this service on the website</span>
+          </label>
+          <label class="status-check" style="margin-top:12px;">
+            <input type="checkbox" id="svcHome" checked>
+            <span>Show this service on the homepage</span>
+          </label>
+          <div class="btn-row" style="margin-top:16px">
+            <button class="save-btn" onclick="submitServiceForm()"><i class="fas fa-save"></i> Save Service</button>
+            <button class="cancel-btn" onclick="resetServiceForm()">Clear</button>
+          </div>
+        </div>
       </div>
     </div>
 
     <!-- ══ GALLERY ══ -->
     <div class="panel" id="panel-gallery">
       <div class="section-title"><i class="fas fa-images"></i> Manage Gallery</div>
+      <p class="panel-helper">Existing images always stay visible here so you can update or remove them anytime. You can also upload multiple gallery images at once.</p>
       <div class="admin-form" style="margin-bottom:20px">
-        <h4 style="font-family:'Montserrat',sans-serif;font-size:.88rem;font-weight:800;margin-bottom:16px;">Add New Gallery Item</h4>
-        <div class="row-2">
-          <div class="fg"><label>Project Title</label><input type="text" id="gTitle" placeholder="Complete House Rewiring"></div>
-          <div class="fg"><label>Category</label>
-            <select id="gCat">
-              <option value="wiring">House Wiring</option>
-              <option value="solar">Solar Installation</option>
-              <option value="lighting">Lighting</option>
-              <option value="commercial">Commercial</option>
-            </select>
+        <div class="gallery-stack">
+          <div>
+            <h4 id="galleryEditorTitle" style="font-family:'Montserrat',sans-serif;font-size:.88rem;font-weight:800;margin-bottom:16px;">Add New Gallery Item</h4>
+            <input type="hidden" id="gEditIndex" value="">
+            <div class="row-2">
+              <div class="fg"><label>Project Title</label><input type="text" id="gTitle" placeholder="Complete House Rewiring"></div>
+              <div class="fg"><label>Category</label>
+                <select id="gCat">
+                  <option value="wiring">House Wiring</option>
+                  <option value="solar">Solar Installation</option>
+                  <option value="lighting">Lighting</option>
+                  <option value="commercial">Commercial</option>
+                  <option value="general">General Project</option>
+                </select>
+              </div>
+            </div>
+            <div class="row-2">
+              <div class="fg"><label>Location</label><input type="text" id="gLoc" placeholder="East Legon, Accra"></div>
+              <div class="fg"><label>Image URL</label><input type="url" id="gImg" placeholder="https://..."></div>
+            </div>
+            <div class="fg">
+              <label>Single Image Upload</label>
+              <label class="logo-upload-zone inline-upload">
+                <input type="file" accept="image/*" onchange="galleryImgUpload(this)">
+                <i class="fas fa-upload" style="color:var(--yellow)"></i>
+                <span style="font-size:.82rem;color:var(--text-dim)">Upload project photo</span>
+              </label>
+            </div>
+            <div class="fg">
+              <label>Bulk Image Upload</label>
+              <label class="logo-upload-zone inline-upload">
+                <input type="file" accept="image/*" multiple onchange="galleryBulkUpload(this)">
+                <i class="fas fa-images" style="color:var(--yellow)"></i>
+                <span style="font-size:.82rem;color:var(--text-dim)">Upload many gallery images together</span>
+              </label>
+              <p class="bulk-upload-note">Bulk upload uses the current category and location fields. If the title is empty, the images will be named automatically.</p>
+            </div>
+            <div class="btn-row">
+              <button class="save-btn" onclick="addGalleryItem()"><i class="fas fa-save"></i> Save Gallery Item</button>
+              <button class="cancel-btn" onclick="resetGalleryForm()">Clear</button>
+            </div>
+          </div>
+          <div>
+            <div class="fg">
+              <label>Image Preview</label>
+              <div class="image-preview" id="galleryPreview">
+                <div class="placeholder"><i class="fas fa-image"></i><p>PROJECT IMAGE</p></div>
+              </div>
+            </div>
           </div>
         </div>
-        <div class="row-2">
-          <div class="fg"><label>Location</label><input type="text" id="gLoc" placeholder="East Legon, Accra"></div>
-          <div class="fg"><label>Image URL</label><input type="url" id="gImg" placeholder="https://..."></div>
+      </div>
+      <div class="bulk-toolbar">
+        <div class="hint" id="gallerySelectionText">Select images to delete many at once.</div>
+        <div class="btn-row">
+          <label class="check-chip"><input type="checkbox" id="gallerySelectAll" onchange="toggleAllGallerySelections(this.checked)"> Select all</label>
+          <button class="cancel-btn" onclick="clearGallerySelection()" style="margin-left:0;">Clear Selection</button>
+          <button class="danger-btn" onclick="deleteSelectedGallery()"><i class="fas fa-trash"></i> Delete Selected</button>
         </div>
-        <div class="fg">
-          <label>Or upload image</label>
-          <label class="logo-upload-zone inline-upload">
-            <input type="file" accept="image/*" onchange="galleryImgUpload(this)">
-            <i class="fas fa-upload" style="color:var(--yellow)"></i>
-            <span style="font-size:.82rem;color:var(--text-dim)">Upload project photo</span>
-          </label>
-        </div>
-        <button class="save-btn" onclick="addGalleryItem()"><i class="fas fa-plus"></i> Add to Gallery</button>
       </div>
       <div class="gal-admin-grid" id="galleryAdminGrid"></div>
     </div>
@@ -502,8 +676,10 @@ input,select,textarea,button{font-family:inherit;outline:none;}
     <!-- ══ TESTIMONIALS ══ -->
     <div class="panel" id="panel-testimonials">
       <div class="section-title"><i class="fas fa-star"></i> Manage Testimonials</div>
+      <p class="panel-helper">Existing testimonials load here for editing too, not just deleting. You can hide a testimonial without removing it completely.</p>
       <div class="admin-form" style="margin-bottom:20px">
-        <h4 style="font-family:'Montserrat',sans-serif;font-size:.88rem;font-weight:800;margin-bottom:16px;">Add New Testimonial</h4>
+        <h4 id="testimonialEditorTitle" style="font-family:'Montserrat',sans-serif;font-size:.88rem;font-weight:800;margin-bottom:16px;">Add New Testimonial</h4>
+        <input type="hidden" id="tEditIndex" value="">
         <div class="row-2">
           <div class="fg"><label>Client Name</label><input type="text" id="tName" placeholder="Kwame Asante"></div>
           <div class="fg"><label>Role / Location</label><input type="text" id="tRole" placeholder="Homeowner, East Legon"></div>
@@ -516,7 +692,14 @@ input,select,textarea,button{font-family:inherit;outline:none;}
             <option value="3">★★★☆☆ — 3 Stars</option>
           </select>
         </div>
-        <button class="save-btn" onclick="addTestimonial()"><i class="fas fa-plus"></i> Add Testimonial</button>
+        <label class="status-check" style="margin-bottom:16px;">
+          <input type="checkbox" id="tActive" checked>
+          <span>Show this testimonial on the website</span>
+        </label>
+        <div class="btn-row">
+          <button class="save-btn" onclick="submitTestimonialForm()"><i class="fas fa-save"></i> Save Testimonial</button>
+          <button class="cancel-btn" onclick="resetTestimonialForm()">Clear</button>
+        </div>
       </div>
       <div class="testi-admin-grid" id="testiAdminGrid"></div>
     </div>
@@ -578,8 +761,8 @@ input,select,textarea,button{font-family:inherit;outline:none;}
           </div>
         </div>
         <div class="fg" style="margin-top:20px"><label>Or paste logo URL</label><input type="url" id="logoUrl" placeholder="https://your-logo-url.com/logo.png" oninput="applyLogoUrl()"></div>
-        <div class="fg"><label>Business Name (shown in navbar)</label><input type="text" id="bizName" value="Noble Electricals"></div>
-        <div class="fg"><label>Tagline</label><input type="text" id="bizTag" value="Safe • Neat • Reliable"></div>
+        <div class="fg"><label>Business Name (shown in navbar)</label><input type="text" id="bizName" value="Noble Electricals and Estates Developers"></div>
+        <div class="fg"><label>Tagline</label><input type="text" id="bizTag" value="Powering Homes. Building Futures."></div>
         <div class="fg"><label>Brand Color (Primary Yellow)</label><input type="color" id="brandColor" value="#FFC107" style="height:44px;padding:4px;"></div>
         <button class="save-btn" onclick="saveBranding()"><i class="fas fa-save"></i> Save Branding</button>
       </div>
@@ -599,6 +782,15 @@ input,select,textarea,button{font-family:inherit;outline:none;}
           <button class="cancel-btn" onclick="testSupabase()"><i class="fas fa-vial"></i> Test Connection</button>
         </div>
         <div style="margin-top:14px" id="supaStatus"></div>
+      </div>
+
+      <div class="settings-group">
+        <h3><i class="fas fa-link"></i> Footer Credit</h3>
+        <div class="fg"><label>Footer Credit Text</label><input type="text" id="footerCreditText" placeholder="Created and developed by Galaxy Studio"></div>
+        <div class="fg"><label>Galaxy Studio Link</label><input type="url" id="footerCreditLink" placeholder="https://galaxystudio.site"></div>
+        <div class="btn-row">
+          <button class="save-btn" onclick="saveFooterCredit()"><i class="fas fa-save"></i> Save Footer Credit</button>
+        </div>
       </div>
 
       <div class="settings-group">
@@ -650,439 +842,8 @@ input,select,textarea,button{font-family:inherit;outline:none;}
 
 <div class="a-toast" id="aToast"></div>
 
-<script>
-// ── CONFIG ──
-const ADMIN_CREDS_KEY = 'ne_admin_creds';
-const DEFAULT_USER = 'admin';
-const DEFAULT_PASS = 'noble2024';
-
-function getCredentials() {
-  try { return JSON.parse(localStorage.getItem(ADMIN_CREDS_KEY)) || {user:DEFAULT_USER,pass:DEFAULT_PASS}; } catch { return {user:DEFAULT_USER,pass:DEFAULT_PASS}; }
-}
-
-// ── LOCAL STORE ──
-const LS = {
-  get(k,fb=null){ try{const v=localStorage.getItem('ne_'+k);return v?JSON.parse(v):fb;}catch{return fb;} },
-  set(k,v){ try{localStorage.setItem('ne_'+k,JSON.stringify(v));}catch{} },
-  del(k){ localStorage.removeItem('ne_'+k); }
-};
-
-// ── TOAST ──
-function toast(msg,type='success'){
-  const t=document.getElementById('aToast');
-  t.textContent=msg; t.className='a-toast '+type+' show';
-  t.innerHTML=`<i class="fas fa-${type==='success'?'check-circle':type==='error'?'exclamation-circle':'info-circle'}"></i> ${msg}`;
-  setTimeout(()=>t.classList.remove('show'),3200);
-}
-
-// ── LOGIN ──
-function doLogin(){
-  const creds = getCredentials();
-  const u=document.getElementById('loginUser').value.trim();
-  const p=document.getElementById('loginPass').value;
-  if(u===creds.user && p===creds.pass){
-    document.getElementById('loginScreen').style.display='none';
-    initAdmin();
-  } else {
-    document.getElementById('loginErr').style.display='block';
-    document.getElementById('loginPass').value='';
-  }
-}
-function doLogout(){
-  document.getElementById('loginScreen').style.display='flex';
-  document.getElementById('loginUser').value='';
-  document.getElementById('loginPass').value='';
-}
-
-// ── SIDEBAR ──
-let sidebarOpen = window.innerWidth > 768;
-function toggleSidebar(){
-  const sb=document.getElementById('sidebar');
-  const mn=document.getElementById('main');
-  if(window.innerWidth<=768){
-    sb.classList.toggle('mobile-open');
-  } else {
-    sidebarOpen=!sidebarOpen;
-    sb.style.transform=sidebarOpen?'':'translateX(-100%)';
-    mn.style.marginLeft=sidebarOpen?'var(--sidebar-w)':'0';
-  }
-}
-
-// ── PANELS ──
-const panelNames={dashboard:'Dashboard',hero:'Hero Section',about:'About Section',services:'Services',gallery:'Gallery',testimonials:'Testimonials','contact-info':'Contact Info',submissions:'Submissions',logo:'Logo & Branding',settings:'Settings'};
-function showPanel(id){
-  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
-  document.getElementById('panel-'+id)?.classList.add('active');
-  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
-  document.querySelector(`.nav-item[onclick*="'${id}'"]`)?.classList.add('active');
-  document.getElementById('pageTitle').textContent=panelNames[id]||id;
-  if(id==='submissions') loadSubmissions();
-  if(id==='gallery') renderGalleryAdmin();
-  if(id==='testimonials') renderTestiAdmin();
-  if(id==='services') renderServicesTable();
-  if(id==='dashboard') loadDashboard();
-  if(window.innerWidth<=768) document.getElementById('sidebar').classList.remove('mobile-open');
-}
-
-// ── INIT ──
-function initAdmin(){
-  loadLogoPreview();
-  loadHeroFields();
-  loadAboutFields();
-  loadContactInfoFields();
-  loadSettingsFields();
-  loadDashboard();
-  updateSubBadge();
-}
-
-// ── DASHBOARD ──
-function loadDashboard(){
-  const subs=LS.get('submissions',[]);
-  const gallery=LS.get('gallery',[]);
-  const testi=LS.get('testimonials',[]);
-  document.getElementById('dSubmissions').textContent=subs.length;
-  document.getElementById('dGallery').textContent=gallery.length;
-  document.getElementById('dTestimonials').textContent=testi.length;
-  document.getElementById('qs-gallery').textContent=gallery.length;
-  document.getElementById('qs-testi').textContent=testi.length;
-  // Recent submissions
-  const cont=document.getElementById('dashSubmissions');
-  if(!subs.length){ cont.innerHTML='<p style="color:var(--text-dim);font-size:.82rem;text-align:center;padding:20px 0;">No submissions yet.</p>'; return; }
-  cont.innerHTML=subs.slice(-5).reverse().map(s=>`
-    <div class="submission-row">
-      <div class="sub-avatar"><i class="fas fa-user"></i></div>
-      <div class="sub-info">
-        <strong>${s.name}</strong>
-        <span>${s.phone} · ${s.service||'General'}</span>
-      </div>
-      <div class="sub-tag">${new Date(s.created_at).toLocaleDateString()}</div>
-    </div>`).join('');
-  // Supabase status
-  const supaUrl=LS.get('supaUrl','');
-  const el=document.getElementById('qs-supa');
-  if(supaUrl&&supaUrl!=='YOUR_SUPABASE_URL'){
-    el.className='supabase-status connected';
-    el.innerHTML='<span class="sup-dot"></span>Connected';
-  }
-}
-
-// ── LOGO ──
-function handleLogoUpload(input){
-  const file=input.files[0]; if(!file) return;
-  const reader=new FileReader();
-  reader.onload=e=>{ saveLogo(e.target.result); };
-  reader.readAsDataURL(file);
-}
-function saveLogo(dataUrl){
-  LS.set('logo',dataUrl);
-  showLogoPreview(dataUrl);
-  toast('Logo uploaded successfully!');
-}
-function applyLogoUrl(){
-  const url=document.getElementById('logoUrl').value.trim();
-  if(url) showLogoPreview(url);
-}
-function showLogoPreview(src){
-  document.getElementById('logoPreviewBox').innerHTML=`<img src="${src}" alt="Logo">`;
-  document.getElementById('logoPreviewRow').style.display='flex';
-}
-function removeLogo(){
-  LS.del('logo'); LS.del('logoUrl');
-  document.getElementById('logoPreviewRow').style.display='none';
-  document.getElementById('logoPreviewBox').innerHTML='';
-  document.getElementById('logoUrl').value='';
-  toast('Logo removed','info');
-}
-function loadLogoPreview(){
-  const logo=LS.get('logo',null);
-  if(logo){ showLogoPreview(logo); }
-}
-function saveBranding(){
-  const url=document.getElementById('logoUrl').value.trim();
-  if(url) LS.set('logo',url);
-  const branding={name:document.getElementById('bizName').value,tag:document.getElementById('bizTag').value,color:document.getElementById('brandColor').value};
-  LS.set('branding',branding);
-  toast('Branding saved!');
-}
-
-// ── HERO ──
-function loadHeroFields(){
-  const s=LS.get('siteSettings',{});
-  if(s.heroHeadline) document.getElementById('hHeroHeadline').value=s.heroHeadline;
-  if(s.heroSubtext) document.getElementById('hHeroSubtext').value=s.heroSubtext;
-  if(s.heroBgImage){ document.getElementById('hHeroBgUrl').value=s.heroBgImage; updateHeroBgPreview(s.heroBgImage); }
-  if(s.heroBtn1) document.getElementById('hBtn1').value=s.heroBtn1;
-  if(s.heroBtn1Link) document.getElementById('hBtn1Link').value=s.heroBtn1Link;
-  if(s.heroBtn2) document.getElementById('hBtn2').value=s.heroBtn2;
-  if(s.heroBtn2Link) document.getElementById('hBtn2Link').value=s.heroBtn2Link;
-}
-function updateHeroBgPreview(url){
-  const p=document.getElementById('heroBgPreview');
-  p.innerHTML=`<img src="${url}" alt="Hero Background" style="width:100%;height:100%;object-fit:cover;">`;
-}
-function heroImgUpload(input){
-  const file=input.files[0]; if(!file) return;
-  const reader=new FileReader();
-  reader.onload=e=>{
-    document.getElementById('hHeroBgUrl').value=e.target.result;
-    updateHeroBgPreview(e.target.result);
-  };
-  reader.readAsDataURL(file);
-}
-document.getElementById('hHeroBgUrl')?.addEventListener('input',function(){ if(this.value) updateHeroBgPreview(this.value); });
-function saveHero(){
-  const s=LS.get('siteSettings',{});
-  s.heroHeadline=document.getElementById('hHeroHeadline').value;
-  s.heroSubtext=document.getElementById('hHeroSubtext').value;
-  s.heroBgImage=document.getElementById('hHeroBgUrl').value;
-  s.heroBtn1=document.getElementById('hBtn1').value;
-  s.heroBtn1Link=document.getElementById('hBtn1Link').value;
-  s.heroBtn2=document.getElementById('hBtn2').value;
-  s.heroBtn2Link=document.getElementById('hBtn2Link').value;
-  LS.set('siteSettings',s);
-  toast('Hero section saved!');
-}
-
-// ── ABOUT ──
-function loadAboutFields(){
-  const s=LS.get('siteSettings',{});
-  if(s.aboutTitle) document.getElementById('aTitle').value=s.aboutTitle;
-  if(s.aboutText) document.getElementById('aText').value=s.aboutText;
-}
-function saveAbout(){
-  const s=LS.get('siteSettings',{});
-  s.aboutTitle=document.getElementById('aTitle').value;
-  s.aboutText=document.getElementById('aText').value;
-  LS.set('siteSettings',s);
-  toast('About section saved!');
-}
-
-// ── SERVICES ──
-const DEFAULT_SERVICES=[
-  {id:1,icon:'fa-home',name:'House Wiring',desc:'Complete residential wiring for new builds and renovations.',status:true},
-  {id:2,icon:'fa-solar-panel',name:'Solar Installations',desc:'Expert solar panel setup and integration.',status:true},
-  {id:3,icon:'fa-search',name:'Fault Finding & Repairs',desc:'Fast diagnosis and lasting repairs for any fault.',status:true},
-  {id:4,icon:'fa-lightbulb',name:'Lighting & Maintenance',desc:'Professional lighting design and installation.',status:true},
-  {id:5,icon:'fa-plug',name:'Electrical Upgrades',desc:'Panel upgrades, rewiring and smart home integration.',status:true},
-  {id:6,icon:'fa-building',name:'Commercial Electrical',desc:'Full electrical solutions for offices and facilities.',status:true},
-];
-function getServices(){ return LS.get('services',DEFAULT_SERVICES); }
-function renderServicesTable(){
-  const svcs=getServices();
-  document.getElementById('servicesTbody').innerHTML=svcs.map((s,i)=>`
-    <tr>
-      <td><div class="tbl-icon"><i class="fas ${s.icon}"></i></div></td>
-      <td style="font-weight:600">${s.name}</td>
-      <td style="color:rgba(255,255,255,.5);max-width:260px;font-size:.78rem">${s.desc}</td>
-      <td><span class="tbl-status ${s.status?'on':'off'}">${s.status?'Active':'Hidden'}</span></td>
-      <td><div class="tbl-actions">
-        <button class="tbl-btn edit" onclick="editService(${i})"><i class="fas fa-edit"></i> Edit</button>
-        <button class="tbl-btn toggle" onclick="toggleService(${i})"><i class="fas fa-eye${s.status?'-slash':''}"></i></button>
-        <button class="tbl-btn del" onclick="deleteService(${i})"><i class="fas fa-trash"></i></button>
-      </div></td>
-    </tr>`).join('');
-}
-function toggleService(i){
-  const svcs=getServices(); svcs[i].status=!svcs[i].status; LS.set('services',svcs); renderServicesTable(); toast('Service updated!');
-}
-function deleteService(i){
-  if(!confirm('Delete this service?')) return;
-  const svcs=getServices(); svcs.splice(i,1); LS.set('services',svcs); renderServicesTable(); toast('Service deleted','error');
-}
-function editService(i){
-  const svcs=getServices(); const s=svcs[i];
-  const name=prompt('Service Name:',s.name); if(!name) return;
-  const desc=prompt('Description:',s.desc); if(!desc) return;
-  const icon=prompt('FontAwesome icon class (e.g. fa-home):',s.icon)||s.icon;
-  svcs[i]={...s,name,desc,icon}; LS.set('services',svcs); renderServicesTable(); toast('Service updated!');
-}
-function addService(){
-  const name=prompt('Service Name:'); if(!name) return;
-  const desc=prompt('Short description:'); if(!desc) return;
-  const icon=prompt('FontAwesome icon (e.g. fa-bolt):')||'fa-bolt';
-  const svcs=getServices();
-  svcs.push({id:Date.now(),icon,name,desc,status:true});
-  LS.set('services',svcs); renderServicesTable(); toast('Service added!');
-}
-
-// ── GALLERY ──
-function getGallery(){ return LS.get('gallery',[]); }
-function galleryImgUpload(input){
-  const file=input.files[0]; if(!file) return;
-  const reader=new FileReader();
-  reader.onload=e=>{ document.getElementById('gImg').value=e.target.result; toast('Image loaded — click Add to Gallery'); };
-  reader.readAsDataURL(file);
-}
-function addGalleryItem(){
-  const title=document.getElementById('gTitle').value.trim();
-  const img=document.getElementById('gImg').value.trim();
-  if(!title||!img){ toast('Title and image are required','error'); return; }
-  const item={id:Date.now(),title,cat:document.getElementById('gCat').value,catLabel:document.getElementById('gCat').options[document.getElementById('gCat').selectedIndex].text,location:document.getElementById('gLoc').value,img};
-  const gal=getGallery(); gal.push(item); LS.set('gallery',gal);
-  ['gTitle','gImg','gLoc'].forEach(id=>document.getElementById(id).value='');
-  renderGalleryAdmin(); toast('Gallery item added!');
-}
-function renderGalleryAdmin(){
-  const gal=getGallery();
-  const grid=document.getElementById('galleryAdminGrid');
-  if(!gal.length){ grid.innerHTML='<p style="color:var(--text-dim);font-size:.82rem;grid-column:1/-1;text-align:center;padding:20px 0;">No gallery items yet. Add one above.</p>'; return; }
-  grid.innerHTML=gal.map((g,i)=>`
-    <div class="gal-admin-card">
-      <img src="${g.img}" alt="${g.title}" loading="lazy" onerror="this.src='data:image/svg+xml,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'200\\' height=\\'120\\'><rect width=\\'200\\' height=\\'120\\' fill=\\'%231a1a1a\\'/><text x=\\'50%\\' y=\\'50%\\' fill=\\'%23444\\' text-anchor=\\'middle\\' dy=\\'.3em\\'>No Image</text></svg>'">
-      <div class="gal-admin-info">
-        <h4>${g.title}</h4>
-        <span>${g.catLabel||g.cat} · ${g.location||''}</span>
-        <div class="gal-admin-actions">
-          <button class="tbl-btn del" onclick="delGallery(${i})"><i class="fas fa-trash"></i> Remove</button>
-        </div>
-      </div>
-    </div>`).join('');
-}
-function delGallery(i){
-  if(!confirm('Remove this gallery item?')) return;
-  const gal=getGallery(); gal.splice(i,1); LS.set('gallery',gal); renderGalleryAdmin(); toast('Removed','error');
-}
-
-// ── TESTIMONIALS ──
-function getTestimonials(){ return LS.get('testimonials',[]); }
-function addTestimonial(){
-  const name=document.getElementById('tName').value.trim();
-  const text=document.getElementById('tText').value.trim();
-  if(!name||!text){ toast('Name and review are required','error'); return; }
-  const item={id:Date.now(),name,role:document.getElementById('tRole').value,text,stars:+document.getElementById('tStars').value};
-  const t=getTestimonials(); t.push(item); LS.set('testimonials',t);
-  ['tName','tRole','tText'].forEach(id=>document.getElementById(id).value='');
-  renderTestiAdmin(); toast('Testimonial added!');
-}
-function renderTestiAdmin(){
-  const testi=getTestimonials();
-  const grid=document.getElementById('testiAdminGrid');
-  if(!testi.length){ grid.innerHTML='<p style="color:var(--text-dim);font-size:.82rem;text-align:center;padding:20px 0;grid-column:1/-1;">No testimonials yet.</p>'; return; }
-  grid.innerHTML=testi.map((t,i)=>`
-    <div class="testi-admin-card">
-      <div class="ta-stars">${'★'.repeat(t.stars)}${'☆'.repeat(5-t.stars)}</div>
-      <div class="ta-text">"${t.text}"</div>
-      <div class="ta-author">${t.name}</div>
-      <div class="ta-role">${t.role}</div>
-      <div class="ta-actions">
-        <button class="tbl-btn del" onclick="delTesti(${i})"><i class="fas fa-trash"></i></button>
-      </div>
-    </div>`).join('');
-}
-function delTesti(i){
-  if(!confirm('Delete this testimonial?')) return;
-  const t=getTestimonials(); t.splice(i,1); LS.set('testimonials',t); renderTestiAdmin(); toast('Deleted','error');
-}
-
-// ── CONTACT INFO ──
-function loadContactInfoFields(){
-  const ci=LS.get('contactInfo',{});
-  const ids={ci1:'055 189 7182',ci2:'020 250 6436',ciEmail:'osmanbilad8@gmail.com',ciWa:'233551897182',ciArea:'Accra & Surroundings',ciHr1:'7:00 AM – 6:00 PM',ciHr2:'8:00 AM – 4:00 PM',ciHr3:'Emergency Only',ciFb:'',ciIg:''};
-  Object.entries(ids).forEach(([id,def])=>{ const el=document.getElementById(id); if(el) el.value=ci[id]||def; });
-}
-function saveContactInfo(){
-  const ids=['ci1','ci2','ciEmail','ciWa','ciArea','ciHr1','ciHr2','ciHr3','ciFb','ciIg'];
-  const ci={}; ids.forEach(id=>{ const el=document.getElementById(id); if(el) ci[id]=el.value; });
-  LS.set('contactInfo',ci); toast('Contact info saved!');
-}
-
-// ── SUBMISSIONS ──
-function loadSubmissions(){
-  const subs=LS.get('submissions',[]);
-  const tbody=document.getElementById('submissionsTbody');
-  if(!subs.length){ tbody.innerHTML='<tr><td colspan="5" style="text-align:center;color:var(--text-dim);padding:24px;">No submissions yet.</td></tr>'; return; }
-  tbody.innerHTML=subs.slice().reverse().map((s,i)=>`
-    <tr class="sub-table-row" onclick="viewSubmission(${subs.length-1-i})">
-      <td style="font-weight:600">${s.name}</td>
-      <td>${s.phone}</td>
-      <td><span class="sub-tag">${s.service||'General'}</span></td>
-      <td style="color:var(--text-dim);font-size:.78rem">${new Date(s.created_at).toLocaleString()}</td>
-      <td><button class="tbl-btn del" onclick="event.stopPropagation();delSubmission(${subs.length-1-i})"><i class="fas fa-trash"></i></button></td>
-    </tr>`).join('');
-  updateSubBadge();
-}
-function viewSubmission(i){
-  const s=LS.get('submissions',[])[i]; if(!s) return;
-  document.getElementById('subModalContent').innerHTML=`
-    <div class="sub-detail-field"><label>Name</label><p>${s.name}</p></div>
-    <div class="sub-detail-field"><label>Phone</label><p>${s.phone}</p></div>
-    <div class="sub-detail-field"><label>Email</label><p>${s.email||'Not provided'}</p></div>
-    <div class="sub-detail-field"><label>Service</label><p>${s.service||'Not specified'}</p></div>
-    <div class="sub-detail-field"><label>Property Type</label><p>${s.property||'Not specified'}</p></div>
-    <div class="sub-detail-field"><label>Message</label><p style="line-height:1.7;color:rgba(255,255,255,.6)">${s.message}</p></div>
-    <div class="sub-detail-field"><label>Submitted</label><p>${new Date(s.created_at).toLocaleString()}</p></div>
-    <div style="margin-top:20px;display:flex;gap:10px;flex-wrap:wrap">
-      <a href="tel:${s.phone}" class="save-btn" style="font-size:.78rem"><i class="fas fa-phone"></i> Call ${s.name}</a>
-      ${s.email?`<a href="mailto:${s.email}" class="save-btn" style="font-size:.78rem;background:var(--dark2);color:var(--white)"><i class="fas fa-envelope"></i> Email</a>`:''}
-    </div>`;
-  document.getElementById('subModal').classList.add('open');
-}
-function closeSubModal(){ document.getElementById('subModal').classList.remove('open'); }
-document.getElementById('subModal').addEventListener('click',e=>{ if(e.target===e.currentTarget) closeSubModal(); });
-function delSubmission(i){
-  if(!confirm('Delete this submission?')) return;
-  const subs=LS.get('submissions',[]); subs.splice(i,1); LS.set('submissions',subs); loadSubmissions(); toast('Deleted','error');
-}
-function updateSubBadge(){
-  const n=LS.get('submissions',[]).length;
-  document.getElementById('subBadge').textContent=n;
-  document.getElementById('subBadge').style.display=n?'inline':'none';
-}
-
-// ── SETTINGS ──
-function loadSettingsFields(){
-  const url=LS.get('supaUrl',''); const key=LS.get('supaKey','');
-  if(url) document.getElementById('sSupaUrl').value=url;
-  if(key) document.getElementById('sSupaKey').value=key;
-}
-function saveSupabase(){
-  const url=document.getElementById('sSupaUrl').value.trim();
-  const key=document.getElementById('sSupaKey').value.trim();
-  if(!url||!key){ toast('Both URL and key are required','error'); return; }
-  LS.set('supaUrl',url); LS.set('supaKey',key);
-  toast('Supabase settings saved!');
-  document.getElementById('supaStatus').innerHTML='<span style="color:#27ae60;font-size:.8rem"><i class="fas fa-check-circle"></i> Settings saved. Test connection to verify.</span>';
-}
-async function testSupabase(){
-  const url=document.getElementById('sSupaUrl').value.trim();
-  const key=document.getElementById('sSupaKey').value.trim();
-  if(!url||!key){ toast('Enter URL and key first','error'); return; }
-  document.getElementById('supaStatus').innerHTML='<span style="color:var(--text-dim);font-size:.8rem"><i class="fas fa-spinner fa-spin"></i> Testing...</span>';
-  try{
-    const r=await fetch(`${url}/rest/v1/`,{headers:{apikey:key}});
-    if(r.ok||r.status===200||r.status===404){
-      document.getElementById('supaStatus').innerHTML='<span style="color:#27ae60;font-size:.8rem"><i class="fas fa-check-circle"></i> Connected successfully!</span>';
-      toast('Supabase connected!');
-    } else throw new Error('Bad status');
-  } catch {
-    document.getElementById('supaStatus').innerHTML='<span style="color:#e74c3c;font-size:.8rem"><i class="fas fa-times-circle"></i> Connection failed. Check your URL and key.</span>';
-    toast('Connection failed','error');
-  }
-}
-function changeCredentials(){
-  const u=document.getElementById('newUser').value.trim();
-  const p=document.getElementById('newPass').value;
-  if(!u||!p){ toast('Username and password required','error'); return; }
-  localStorage.setItem(ADMIN_CREDS_KEY,JSON.stringify({user:u,pass:p}));
-  document.getElementById('newUser').value=''; document.getElementById('newPass').value='';
-  toast('Credentials updated!');
-}
-function clearSubmissions(){
-  if(!confirm('Delete ALL submissions? This cannot be undone.')) return;
-  LS.set('submissions',[]); loadDashboard(); toast('All submissions cleared','error');
-}
-function resetAll(){
-  if(!confirm('Reset ALL settings? This will clear logos, settings, and content.')) return;
-  const keys=['logo','siteSettings','gallery','testimonials','services','contactInfo','branding','supaUrl','supaKey'];
-  keys.forEach(k=>LS.del(k));
-  toast('All settings reset','info');
-  setTimeout(()=>location.reload(),1000);
-}
-
-// ── KEYBOARD SHORTCUT ──
-document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeSubModal(); });
-</script>
 <script src="../js/shared.js"></script>
 <script src="./admin.js"></script>
 </body>
 </html>
+

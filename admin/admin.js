@@ -34,6 +34,12 @@ function testimonialList() {
   return [...(NobleSite.state.testimonials || [])];
 }
 
+function teamMemberList() {
+  return [...(NobleSite.state.siteSettings?.teamMembers || DEFAULT_SITE_SETTINGS.teamMembers || [])];
+}
+
+const selectedGalleryItems = new Set();
+
 function setSupabaseStatus(message, type = 'info') {
   const el = document.getElementById('supaStatus');
   if (!el) return;
@@ -53,7 +59,7 @@ function setSupabaseStatus(message, type = 'info') {
 }
 
 function loadAdminLogos() {
-  const logo = NobleSite.state.branding.logo;
+  const logo = resolveAssetPath(NobleSite.state.branding.logo || DEFAULT_BRANDING.logo);
   ['loginLogoIcon', 'sidebarLogoIcon'].forEach((id) => {
     const el = document.getElementById(id);
     if (!el) return;
@@ -104,38 +110,6 @@ function showPanel(id) {
   if (id === 'testimonials') renderTestiAdmin();
   if (id === 'submissions') loadSubmissions();
   if (window.innerWidth <= 768) document.getElementById('sidebar')?.classList.remove('mobile-open');
-}
-
-async function initAdmin() {
-  await NobleSite.loadState();
-  loadAdminLogos();
-  loadHeroFields();
-  loadAboutFields();
-  loadContactInfoFields();
-  loadLogoPreview();
-  loadBrandingFields();
-  loadSettingsFields();
-  loadDashboard();
-  updateSubBadge();
-}
-
-function doLogin() {
-  const creds = getAdminCreds();
-  const user = readValue('loginUser');
-  const pass = document.getElementById('loginPass')?.value || '';
-  if (user === creds.user && pass === creds.pass) {
-    document.getElementById('loginScreen').style.display = 'none';
-    initAdmin();
-    return;
-  }
-  document.getElementById('loginErr').style.display = 'block';
-  document.getElementById('loginPass').value = '';
-}
-
-function signOut() {
-  document.getElementById('loginScreen').style.display = 'flex';
-  writeValue('loginUser', '');
-  writeValue('loginPass', '');
 }
 
 function loadDashboard() {
@@ -189,6 +163,744 @@ function loadDashboard() {
   `).join('');
 }
 
+function updateTinyToastPosition() {
+  const toastEl = document.getElementById('globalToast');
+  if (!toastEl) return;
+  toastEl.style.top = '18px';
+  toastEl.style.right = '18px';
+  toastEl.style.bottom = 'auto';
+}
+
+function loadServiceIconChoices() {
+  const picker = document.getElementById('serviceIconPicker');
+  if (!picker) return;
+  const choices = window.SERVICE_ICON_CHOICES || [];
+  picker.innerHTML = choices.map((choice) => `
+    <button type="button" class="icon-choice" data-icon="${choice.icon}" onclick="selectServiceIcon('${choice.icon.replace(/'/g, "\\'")}', '${choice.name.replace(/'/g, "\\'")}')">
+      <i class="fas ${choice.icon}"></i>
+      <small>${choice.name}</small>
+    </button>
+  `).join('');
+}
+
+function syncSelectedServiceIcon(icon) {
+  document.querySelectorAll('#serviceIconPicker .icon-choice').forEach((button) => {
+    button.classList.toggle('active', button.dataset.icon === icon);
+  });
+}
+
+function updateServiceImagePreview(src = '') {
+  const preview = document.getElementById('svcImagePreview');
+  if (!preview) return;
+  preview.innerHTML = src
+    ? `<img src="${resolveAssetPath(src)}" alt="Service image preview">`
+    : '<div class="placeholder"><i class="fas fa-image"></i><p>No image selected</p></div>';
+}
+
+function updateServiceIconPreview(icon = 'fa-bolt') {
+  const preview = document.getElementById('svcIconPreview');
+  if (preview) preview.innerHTML = `<i class="fas ${icon || 'fa-bolt'}"></i>`;
+  syncSelectedServiceIcon(icon || 'fa-bolt');
+}
+
+function updateServiceCardPreview() {
+  const name = readValue('svcName') || 'Service Preview';
+  const text = document.getElementById('svcDescription')?.value?.trim?.() || 'Choose an icon and image for this service.';
+  const nameEl = document.getElementById('svcPreviewName');
+  const textEl = document.getElementById('svcPreviewText');
+  if (nameEl) nameEl.textContent = name;
+  if (textEl) textEl.textContent = text;
+}
+
+function updateTeamPreview(src = '') {
+  const preview = document.getElementById('tmPreview');
+  if (!preview) return;
+  preview.innerHTML = src
+    ? `<img src="${resolveAssetPath(src)}" alt="Team member preview">`
+    : '<div class="placeholder"><i class="fas fa-user"></i><p>No image selected</p></div>';
+}
+
+function teamImageUpload(input) {
+  const file = input.files?.[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (event) => {
+    const value = event.target?.result || '';
+    writeValue('tmImage', value);
+    updateTeamPreview(value);
+    toast('Team member image loaded.', 'info');
+  };
+  reader.readAsDataURL(file);
+}
+
+function resetTeamMemberForm() {
+  writeValue('tmEditIndex', '');
+  writeValue('tmName', '');
+  writeValue('tmRole', '');
+  writeValue('tmBio', '');
+  writeValue('tmImage', '');
+  writeValue('tmIcon', 'fa-hard-hat');
+  const title = document.getElementById('teamEditorTitle');
+  if (title) title.textContent = 'Add Team Member';
+  updateTeamPreview('');
+}
+
+function editTeamMember(index) {
+  const members = teamMemberList();
+  const current = members[index];
+  if (!current) return;
+  writeValue('tmEditIndex', String(index));
+  writeValue('tmName', current.name || '');
+  writeValue('tmRole', current.role || '');
+  writeValue('tmBio', current.bio || '');
+  writeValue('tmImage', current.image_url || '');
+  writeValue('tmIcon', current.icon || 'fa-hard-hat');
+  const title = document.getElementById('teamEditorTitle');
+  if (title) title.textContent = `Edit Team Member: ${current.name}`;
+  updateTeamPreview(current.image_url || '');
+}
+
+async function saveTeamMembers(members, successMessage) {
+  const payload = {
+    ...NobleSite.state.siteSettings,
+    teamMembers: members
+  };
+  const result = await NobleSite.saveSetting('siteSettings', payload);
+  NobleSite.state.siteSettings.teamMembers = members;
+  renderTeamAdmin();
+  toast(result.ok ? successMessage : `${successMessage} Saved locally. Supabase sync failed.`, result.ok ? 'success' : 'warning');
+}
+
+async function submitTeamMemberForm() {
+  const name = readValue('tmName');
+  const role = readValue('tmRole');
+  const bio = document.getElementById('tmBio')?.value?.trim() || '';
+  const imageUrl = readValue('tmImage');
+  const icon = readValue('tmIcon') || 'fa-hard-hat';
+  const editIndex = readValue('tmEditIndex');
+  if (!name || !role) {
+    toast('Team member name and role are required.', 'error');
+    return;
+  }
+
+  const members = teamMemberList();
+  const current = editIndex !== '' ? members[Number(editIndex)] : null;
+  const payload = {
+    id: current?.id ?? Date.now(),
+    name,
+    role,
+    bio,
+    image_url: imageUrl,
+    icon
+  };
+
+  if (editIndex !== '') {
+    members[Number(editIndex)] = { ...current, ...payload };
+  } else {
+    members.push(payload);
+  }
+
+  await saveTeamMembers(members, editIndex !== '' ? 'Team member updated!' : 'Team member added!');
+  resetTeamMemberForm();
+}
+
+async function deleteTeamMember(index) {
+  if (!confirm('Delete this team member?')) return;
+  const members = teamMemberList();
+  members.splice(index, 1);
+  await saveTeamMembers(members, 'Team member deleted.');
+  resetTeamMemberForm();
+}
+
+function renderTeamAdmin() {
+  const grid = document.getElementById('teamAdminGrid');
+  if (!grid) return;
+  const members = teamMemberList();
+  if (!members.length) {
+    grid.innerHTML = '<p style="color:var(--text-dim);font-size:.82rem;grid-column:1/-1;text-align:center;padding:20px 0;">No team members yet.</p>';
+    return;
+  }
+
+  grid.innerHTML = members.map((member, index) => `
+    <div class="team-admin-card">
+      <div class="team-admin-photo">
+        ${member.image_url ? `<img src="${resolveAssetPath(member.image_url)}" alt="${member.name}">` : `<i class="fas ${member.icon || 'fa-hard-hat'}"></i>`}
+      </div>
+      <div class="team-admin-info">
+        <strong>${member.name}</strong>
+        <span>${member.role}</span>
+        <p>${member.bio || ''}</p>
+        <div class="team-admin-actions">
+          <button class="tbl-btn edit" onclick="editTeamMember(${index})"><i class="fas fa-edit"></i> Edit</button>
+          <button class="tbl-btn del" onclick="deleteTeamMember(${index})"><i class="fas fa-trash"></i> Delete</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function selectServiceIcon(icon, label = '') {
+  writeValue('svcIcon', icon);
+  updateServiceIconPreview(icon);
+  if (!readValue('svcName') && label) {
+    const previewName = document.getElementById('svcPreviewName');
+    if (previewName) previewName.textContent = `${label} Service`;
+  }
+}
+
+function serviceImgUpload(input) {
+  const file = input.files?.[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (event) => {
+    const value = event.target?.result || '';
+    writeValue('svcImage', value);
+    updateServiceImagePreview(value);
+    toast('Service image loaded. Save the service to keep it.', 'info');
+  };
+  reader.readAsDataURL(file);
+}
+
+function resetServiceForm() {
+  writeValue('svcEditIndex', '');
+  writeValue('svcName', '');
+  writeValue('svcIcon', 'fa-bolt');
+  writeValue('svcDescription', '');
+  writeValue('svcImage', '');
+  writeValue('svcSortOrder', String(serviceList().length + 1));
+  const status = document.getElementById('svcStatus');
+  if (status) status.checked = true;
+  const homepage = document.getElementById('svcHome');
+  if (homepage) homepage.checked = true;
+  const title = document.getElementById('serviceEditorTitle');
+  if (title) title.textContent = 'Add New Service';
+  updateServiceIconPreview('fa-bolt');
+  updateServiceImagePreview('');
+  updateServiceCardPreview();
+}
+
+function openServiceEditor(index = null) {
+  if (index == null) {
+    resetServiceForm();
+    return;
+  }
+
+  const services = serviceList();
+  const current = services[index];
+  if (!current) return;
+  writeValue('svcEditIndex', String(index));
+  writeValue('svcName', current.name || '');
+  writeValue('svcIcon', current.icon || 'fa-bolt');
+  writeValue('svcDescription', current.description || '');
+  writeValue('svcImage', current.image_url || '');
+  writeValue('svcSortOrder', String(current.sort_order ?? index + 1));
+  const status = document.getElementById('svcStatus');
+  if (status) status.checked = current.status !== false;
+  const homepage = document.getElementById('svcHome');
+  if (homepage) homepage.checked = current.show_on_homepage !== false;
+  const title = document.getElementById('serviceEditorTitle');
+  if (title) title.textContent = `Edit Service: ${current.name}`;
+  updateServiceIconPreview(current.icon || 'fa-bolt');
+  updateServiceImagePreview(current.image_url || '');
+  updateServiceCardPreview();
+}
+
+function renderServicesTable() {
+  const body = document.getElementById('servicesTbody');
+  if (!body) return;
+  const services = serviceList();
+  body.innerHTML = services.map((service, index) => `
+    <tr>
+      <td><div class="tbl-icon"><i class="fas ${service.icon || 'fa-bolt'}"></i></div></td>
+      <td style="font-weight:600">${service.name}</td>
+      <td style="color:rgba(255,255,255,.5);max-width:260px;font-size:.78rem">${service.description || ''}</td>
+      <td><span class="tbl-status ${service.show_on_homepage !== false ? 'on' : 'off'}">${service.show_on_homepage !== false ? 'Shown' : 'Hidden'}</span></td>
+      <td><span class="tbl-status ${service.status !== false ? 'on' : 'off'}">${service.status !== false ? 'Active' : 'Hidden'}</span></td>
+      <td>
+        <div class="tbl-actions">
+          <button class="tbl-btn edit" onclick="openServiceEditor(${index})"><i class="fas fa-edit"></i> Edit</button>
+          <button class="tbl-btn toggle" onclick="toggleServiceHomepage(${index})"><i class="fas fa-house"></i></button>
+          <button class="tbl-btn toggle" onclick="toggleService(${index})"><i class="fas fa-eye${service.status !== false ? '-slash' : ''}"></i></button>
+          <button class="tbl-btn del" onclick="deleteService(${index})"><i class="fas fa-trash"></i></button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+async function commitServices(services, successMessage) {
+  const result = await NobleSite.replaceServices(services);
+  renderServicesTable();
+  loadDashboard();
+  toast(result.ok ? successMessage : `${successMessage} Saved locally only because Supabase sync failed.`, result.ok ? 'success' : 'warning');
+}
+
+async function toggleService(index) {
+  const services = serviceList();
+  const current = services[index];
+  if (!current) return;
+  current.status = !(current.status !== false);
+  await commitServices(services, 'Service updated!');
+}
+
+async function toggleServiceHomepage(index) {
+  const services = serviceList();
+  const current = services[index];
+  if (!current) return;
+  current.show_on_homepage = !(current.show_on_homepage !== false);
+  await commitServices(services, 'Homepage service list updated!');
+}
+
+async function deleteService(index) {
+  if (!confirm('Delete this service?')) return;
+  const services = serviceList();
+  services.splice(index, 1);
+  await commitServices(services, 'Service deleted.');
+  resetServiceForm();
+}
+
+async function submitServiceForm() {
+  const name = readValue('svcName');
+  const description = document.getElementById('svcDescription')?.value?.trim() || '';
+  const icon = readValue('svcIcon') || 'fa-bolt';
+  const imageUrl = readValue('svcImage');
+  const editIndex = readValue('svcEditIndex');
+  const sortOrder = Number(readValue('svcSortOrder') || serviceList().length + 1) || serviceList().length + 1;
+  const isActive = document.getElementById('svcStatus')?.checked !== false;
+  const showOnHomepage = document.getElementById('svcHome')?.checked !== false;
+
+  if (!name) {
+    toast('Service name is required.', 'error');
+    return;
+  }
+
+  const services = serviceList();
+  const current = editIndex !== '' ? services[Number(editIndex)] : null;
+  const payload = {
+    id: current?.id ?? Date.now(),
+    name,
+    description,
+    icon,
+    icon_label: (window.SERVICE_ICON_CHOICES || []).find((choice) => choice.icon === icon)?.name || '',
+    image_url: imageUrl,
+    status: isActive,
+    show_on_homepage: showOnHomepage,
+    sort_order: sortOrder
+  };
+
+  if (editIndex !== '') {
+    services[Number(editIndex)] = { ...current, ...payload };
+  } else {
+    services.push(payload);
+  }
+
+  services.sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
+  await commitServices(services, editIndex !== '' ? 'Service updated!' : 'Service added!');
+  resetServiceForm();
+}
+
+function updateGalleryPreview(src = '') {
+  const preview = document.getElementById('galleryPreview');
+  if (!preview) return;
+  preview.innerHTML = src
+    ? `<img src="${resolveAssetPath(src)}" alt="Gallery preview" onerror="this.onerror=null;this.closest('.image-preview').innerHTML='<div class=&quot;placeholder&quot;><i class=&quot;fas fa-image&quot;></i><p>INVALID IMAGE</p></div>';">`
+    : '<div class="placeholder"><i class="fas fa-image"></i><p>PROJECT IMAGE</p></div>';
+}
+
+function resetGalleryForm() {
+  writeValue('gEditIndex', '');
+  writeValue('gTitle', '');
+  writeValue('gLoc', '');
+  writeValue('gImg', '');
+  const select = document.getElementById('gCat');
+  if (select) select.selectedIndex = 0;
+  const title = document.getElementById('galleryEditorTitle');
+  if (title) title.textContent = 'Add New Gallery Item';
+  updateGalleryPreview('');
+}
+
+function updateGallerySelectionSummary() {
+  const text = document.getElementById('gallerySelectionText');
+  if (text) {
+    text.textContent = selectedGalleryItems.size ? `${selectedGalleryItems.size} image(s) selected.` : 'Select images to delete many at once.';
+  }
+  const toggle = document.getElementById('gallerySelectAll');
+  if (toggle) {
+    const total = galleryList().length;
+    toggle.checked = total > 0 && selectedGalleryItems.size === total;
+  }
+}
+
+function toggleGallerySelection(index, checked) {
+  if (checked) selectedGalleryItems.add(index);
+  else selectedGalleryItems.delete(index);
+  updateGallerySelectionSummary();
+  renderGalleryAdmin();
+}
+
+function clearGallerySelection() {
+  selectedGalleryItems.clear();
+  updateGallerySelectionSummary();
+  renderGalleryAdmin();
+}
+
+function toggleAllGallerySelections(checked) {
+  selectedGalleryItems.clear();
+  if (checked) {
+    galleryList().forEach((_, index) => selectedGalleryItems.add(index));
+  }
+  updateGallerySelectionSummary();
+  renderGalleryAdmin();
+}
+
+async function deleteSelectedGallery() {
+  if (!selectedGalleryItems.size) {
+    toast('Select at least one gallery image first.', 'info');
+    return;
+  }
+  if (!confirm(`Delete ${selectedGalleryItems.size} selected gallery image(s)?`)) return;
+  const items = galleryList().filter((_, index) => !selectedGalleryItems.has(index));
+  selectedGalleryItems.clear();
+  await commitGallery(items, 'Selected gallery images removed.');
+  updateGallerySelectionSummary();
+}
+
+function editGallery(index) {
+  const items = galleryList();
+  const current = items[index];
+  if (!current) return;
+  writeValue('gEditIndex', String(index));
+  writeValue('gTitle', current.title || '');
+  writeValue('gLoc', current.location || '');
+  writeValue('gImg', current.img_url || '');
+  const select = document.getElementById('gCat');
+  if (select) select.value = current.cat || 'general';
+  const title = document.getElementById('galleryEditorTitle');
+  if (title) title.textContent = `Edit Gallery Item: ${current.title}`;
+  updateGalleryPreview(current.img_url || '');
+}
+
+function galleryImgUpload(input) {
+  const file = input.files?.[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (event) => {
+    const value = event.target?.result || '';
+    writeValue('gImg', value);
+    updateGalleryPreview(value);
+    toast('Image loaded. Click Save Gallery Item to keep it.', 'info');
+  };
+  reader.readAsDataURL(file);
+}
+
+function fileToDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (event) => resolve(event.target?.result || '');
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+async function galleryBulkUpload(input) {
+  const files = [...(input.files || [])];
+  if (!files.length) return;
+  const select = document.getElementById('gCat');
+  const category = select?.value || 'general';
+  const catLabel = select?.options?.[select.selectedIndex]?.text || 'Project';
+  const location = readValue('gLoc');
+  const titleSeed = readValue('gTitle');
+
+  try {
+    const images = await Promise.all(files.map(fileToDataUrl));
+    const items = galleryList();
+    images.reverse().forEach((img, index) => {
+      const order = files.length - index;
+      items.unshift({
+        id: Date.now() + index,
+        title: titleSeed ? `${titleSeed} ${order}` : files[index]?.name?.replace(/\.[^.]+$/, '').replace(/[-_]+/g, ' ') || `Project ${items.length + 1}`,
+        cat: category,
+        cat_label: catLabel,
+        location,
+        img_url: img
+      });
+    });
+    const result = await NobleSite.replaceGallery(items);
+    renderGalleryAdmin();
+    loadDashboard();
+    toast(result.ok ? `${files.length} gallery image(s) uploaded!` : 'Bulk gallery upload saved locally only because Supabase sync failed.', result.ok ? 'success' : 'warning');
+    input.value = '';
+    resetGalleryForm();
+  } catch (error) {
+    console.error(error);
+    toast('Bulk upload failed.', 'error');
+  }
+}
+
+function renderGalleryAdmin() {
+  const grid = document.getElementById('galleryAdminGrid');
+  if (!grid) return;
+  const items = galleryList();
+  if (!items.length) {
+    grid.innerHTML = '<p style="color:var(--text-dim);font-size:.82rem;grid-column:1/-1;text-align:center;padding:20px 0;">No gallery items yet. Add one above.</p>';
+    return;
+  }
+
+  grid.innerHTML = items.map((item, index) => `
+    <div class="gal-admin-card ${selectedGalleryItems.has(index) ? 'selected' : ''}">
+      <label class="gal-select"><input type="checkbox" ${selectedGalleryItems.has(index) ? 'checked' : ''} onchange="toggleGallerySelection(${index}, this.checked)"></label>
+      <img src="${resolveAssetPath(item.img_url)}" alt="${item.title}" loading="lazy">
+      <div class="gal-admin-info">
+        <h4>${item.title}</h4>
+        <span>${item.cat_label || item.cat} · ${item.location || ''}</span>
+        <div class="gal-admin-actions">
+          <button class="tbl-btn edit" onclick="editGallery(${index})"><i class="fas fa-edit"></i> Edit</button>
+          <button class="tbl-btn del" onclick="delGallery(${index})"><i class="fas fa-trash"></i> Remove</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function commitGallery(items, successMessage) {
+  const result = await NobleSite.replaceGallery(items);
+  renderGalleryAdmin();
+  loadDashboard();
+  updateGallerySelectionSummary();
+  toast(result.ok ? successMessage : `${successMessage} Saved locally only because Supabase sync failed.`, result.ok ? 'success' : 'warning');
+}
+
+async function addGalleryItem() {
+  const title = readValue('gTitle');
+  const img = readValue('gImg');
+  const editIndex = readValue('gEditIndex');
+  if (!title || !img) {
+    toast('Title and image are required.', 'error');
+    return;
+  }
+
+  const select = document.getElementById('gCat');
+  const items = galleryList();
+  const payload = {
+    id: editIndex !== '' ? items[Number(editIndex)]?.id ?? Date.now() : Date.now(),
+    title,
+    cat: select?.value || 'general',
+    cat_label: select?.options?.[select.selectedIndex]?.text || 'Project',
+    location: readValue('gLoc'),
+    img_url: img
+  };
+
+  if (editIndex !== '') {
+    items[Number(editIndex)] = payload;
+  } else {
+    items.unshift(payload);
+  }
+
+  await commitGallery(items, editIndex !== '' ? 'Gallery item updated!' : 'Gallery item added!');
+  resetGalleryForm();
+}
+
+async function delGallery(index) {
+  if (!confirm('Remove this gallery item?')) return;
+  const items = galleryList();
+  items.splice(index, 1);
+  await commitGallery(items, 'Gallery item removed.');
+}
+
+function resetTestimonialForm() {
+  writeValue('tEditIndex', '');
+  writeValue('tName', '');
+  writeValue('tRole', '');
+  writeValue('tText', '');
+  const stars = document.getElementById('tStars');
+  if (stars) stars.value = '5';
+  const active = document.getElementById('tActive');
+  if (active) active.checked = true;
+  const title = document.getElementById('testimonialEditorTitle');
+  if (title) title.textContent = 'Add New Testimonial';
+}
+
+function editTestimonial(index) {
+  const items = testimonialList();
+  const current = items[index];
+  if (!current) return;
+  writeValue('tEditIndex', String(index));
+  writeValue('tName', current.name || '');
+  writeValue('tRole', current.role || '');
+  writeValue('tText', current.review || '');
+  const stars = document.getElementById('tStars');
+  if (stars) stars.value = String(current.stars || 5);
+  const active = document.getElementById('tActive');
+  if (active) active.checked = current.active !== false;
+  const title = document.getElementById('testimonialEditorTitle');
+  if (title) title.textContent = `Edit Testimonial: ${current.name}`;
+}
+
+function renderTestiAdmin() {
+  const grid = document.getElementById('testiAdminGrid');
+  if (!grid) return;
+  const items = testimonialList();
+  if (!items.length) {
+    grid.innerHTML = '<p style="color:var(--text-dim);font-size:.82rem;text-align:center;padding:20px 0;grid-column:1/-1;">No testimonials yet.</p>';
+    return;
+  }
+
+  grid.innerHTML = items.map((item, index) => `
+    <div class="testi-admin-card ${item.active === false ? 'inactive' : ''}">
+      <div class="ta-stars">${'★'.repeat(item.stars || 5)}${'☆'.repeat(Math.max(0, 5 - (item.stars || 5)))}</div>
+      <div class="ta-text">"${item.review}"</div>
+      <div class="ta-author">${item.name}</div>
+      <div class="ta-role">${item.role || ''}</div>
+      <div class="ta-actions">
+        <button class="tbl-btn edit" onclick="editTestimonial(${index})"><i class="fas fa-edit"></i></button>
+        <button class="tbl-btn toggle" onclick="toggleTestimonial(${index})"><i class="fas fa-eye${item.active !== false ? '-slash' : ''}"></i></button>
+        <button class="tbl-btn del" onclick="delTesti(${index})"><i class="fas fa-trash"></i></button>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function commitTestimonials(items, successMessage) {
+  const result = await NobleSite.replaceTestimonials(items);
+  renderTestiAdmin();
+  loadDashboard();
+  toast(result.ok ? successMessage : `${successMessage} Saved locally only because Supabase sync failed.`, result.ok ? 'success' : 'warning');
+}
+
+async function submitTestimonialForm() {
+  const name = readValue('tName');
+  const review = document.getElementById('tText')?.value?.trim() || '';
+  const editIndex = readValue('tEditIndex');
+  if (!name || !review) {
+    toast('Name and review are required.', 'error');
+    return;
+  }
+
+  const items = testimonialList();
+  const current = editIndex !== '' ? items[Number(editIndex)] : null;
+  const payload = {
+    id: current?.id ?? Date.now(),
+    name,
+    role: readValue('tRole'),
+    review,
+    stars: Number(document.getElementById('tStars')?.value || 5),
+    active: document.getElementById('tActive')?.checked !== false
+  };
+
+  if (editIndex !== '') {
+    items[Number(editIndex)] = { ...current, ...payload };
+  } else {
+    items.unshift(payload);
+  }
+
+  await commitTestimonials(items, editIndex !== '' ? 'Testimonial updated!' : 'Testimonial added!');
+  resetTestimonialForm();
+}
+
+async function toggleTestimonial(index) {
+  const items = testimonialList();
+  const current = items[index];
+  if (!current) return;
+  current.active = !(current.active !== false);
+  await commitTestimonials(items, 'Testimonial updated!');
+}
+
+async function delTesti(index) {
+  if (!confirm('Delete this testimonial?')) return;
+  const items = testimonialList();
+  items.splice(index, 1);
+  await commitTestimonials(items, 'Testimonial deleted.');
+  resetTestimonialForm();
+}
+
+function loadContactInfoFields() {
+  const contact = NobleSite.state.contactInfo || {};
+  Object.entries({ ...DEFAULT_CONTACT_INFO, ...contact }).forEach(([id, value]) => writeValue(id, value));
+}
+
+async function saveContactInfo() {
+  const payload = {};
+  ['ci1', 'ci2', 'ciEmail', 'ciWa', 'ciArea', 'ciHr1', 'ciHr2', 'ciHr3', 'ciFb', 'ciIg'].forEach((id) => {
+    payload[id] = document.getElementById(id)?.value || '';
+  });
+  const result = await NobleSite.saveSetting('contactInfo', payload);
+  toast(result.ok ? 'Contact info saved!' : 'Contact info saved locally. Supabase sync failed.', result.ok ? 'success' : 'warning');
+}
+
+function updateHeroBgPreview(url) {
+  const preview = document.getElementById('heroBgPreview');
+  if (!preview) return;
+  preview.innerHTML = url
+    ? `<img src="${resolveAssetPath(url)}" alt="Hero Background" style="width:100%;height:100%;object-fit:cover;">`
+    : '<div class="placeholder"><i class="fas fa-image"></i><p>No image selected</p></div>';
+}
+
+function heroImgUpload(input) {
+  const file = input.files?.[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (event) => {
+    const data = event.target?.result || '';
+    writeValue('hHeroBgUrl', data);
+    updateHeroBgPreview(data);
+  };
+  reader.readAsDataURL(file);
+}
+
+function loadHeroFields() {
+  const settings = NobleSite.state.siteSettings || {};
+  writeValue('hHeroHeadline', settings.heroHeadline || '');
+  writeValue('hHeroSubtext', settings.heroSubtext || '');
+  writeValue('hHeroBgUrl', settings.heroBgImage || '');
+  writeValue('hBtn1', settings.heroBtn1 || '');
+  writeValue('hBtn1Link', settings.heroBtn1Link || '');
+  writeValue('hBtn2', settings.heroBtn2 || '');
+  writeValue('hBtn2Link', settings.heroBtn2Link || '');
+  updateHeroBgPreview(settings.heroBgImage || '');
+}
+
+async function saveHero() {
+  const payload = {
+    ...NobleSite.state.siteSettings,
+    heroHeadline: document.getElementById('hHeroHeadline')?.value || '',
+    heroSubtext: document.getElementById('hHeroSubtext')?.value || '',
+    heroBgImage: document.getElementById('hHeroBgUrl')?.value || '',
+    heroBtn1: document.getElementById('hBtn1')?.value || '',
+    heroBtn1Link: document.getElementById('hBtn1Link')?.value || '',
+    heroBtn2: document.getElementById('hBtn2')?.value || '',
+    heroBtn2Link: document.getElementById('hBtn2Link')?.value || ''
+  };
+  const result = await NobleSite.saveSetting('siteSettings', payload);
+  toast(result.ok ? 'Hero section saved!' : 'Hero saved locally. Supabase sync failed.', result.ok ? 'success' : 'warning');
+}
+
+function loadAboutFields() {
+  const settings = NobleSite.state.siteSettings || {};
+  writeValue('aTitle', settings.aboutTitle || '');
+  writeValue('aText', settings.aboutText || '');
+  writeValue('aStat1', settings.aboutStat1 || DEFAULT_SITE_SETTINGS.aboutStat1);
+  writeValue('aStat1l', settings.aboutStat1Label || DEFAULT_SITE_SETTINGS.aboutStat1Label);
+  writeValue('aYears', settings.aboutYears || DEFAULT_SITE_SETTINGS.aboutYears);
+  writeValue('aSat', settings.aboutSatisfaction || DEFAULT_SITE_SETTINGS.aboutSatisfaction);
+  writeValue('aClients', settings.aboutClients || DEFAULT_SITE_SETTINGS.aboutClients);
+  renderTeamAdmin();
+}
+
+async function saveAbout() {
+  const payload = {
+    ...NobleSite.state.siteSettings,
+    aboutTitle: document.getElementById('aTitle')?.value || '',
+    aboutText: document.getElementById('aText')?.value || '',
+    aboutStat1: document.getElementById('aStat1')?.value || DEFAULT_SITE_SETTINGS.aboutStat1,
+    aboutStat1Label: document.getElementById('aStat1l')?.value || DEFAULT_SITE_SETTINGS.aboutStat1Label,
+    aboutYears: document.getElementById('aYears')?.value || DEFAULT_SITE_SETTINGS.aboutYears,
+    aboutSatisfaction: document.getElementById('aSat')?.value || DEFAULT_SITE_SETTINGS.aboutSatisfaction,
+    aboutClients: document.getElementById('aClients')?.value || DEFAULT_SITE_SETTINGS.aboutClients
+  };
+  const result = await NobleSite.saveSetting('siteSettings', payload);
+  toast(result.ok ? 'About section saved!' : 'About saved locally. Supabase sync failed.', result.ok ? 'success' : 'warning');
+}
+
 function handleLogoUpload(input) {
   const file = input.files?.[0];
   if (!file) return;
@@ -207,15 +919,15 @@ function handleLogoUpload(input) {
 function showLogoPreview(src) {
   const box = document.getElementById('logoPreviewBox');
   const row = document.getElementById('logoPreviewRow');
-  if (box) box.innerHTML = `<img src="${src}" alt="Logo">`;
+  if (box) box.innerHTML = `<img src="${resolveAssetPath(src)}" alt="Logo">`;
   if (row) row.style.display = 'flex';
 }
 
 function loadLogoPreview() {
-  const logo = NobleSite.state.branding.logo;
+  const logo = resolveAssetPath(NobleSite.state.branding.logo || DEFAULT_BRANDING.logo);
   if (logo) {
     showLogoPreview(logo);
-    writeValue('logoUrl', logo);
+    writeValue('logoUrl', NobleSite.state.branding.logo || DEFAULT_BRANDING.logo || '');
   }
 }
 
@@ -224,7 +936,7 @@ function loadBrandingFields() {
   writeValue('bizName', branding.name || DEFAULT_BRANDING.name);
   writeValue('bizTag', branding.tag || DEFAULT_BRANDING.tag);
   writeValue('brandColor', branding.color || DEFAULT_BRANDING.color);
-  if (branding.logo) writeValue('logoUrl', branding.logo);
+  writeValue('logoUrl', branding.logo || DEFAULT_BRANDING.logo || '');
 }
 
 function applyLogoUrl() {
@@ -260,288 +972,6 @@ async function saveBranding() {
 
   loadAdminLogos();
   toast(results.every((result) => result.ok) ? 'Branding saved!' : 'Branding saved locally. Supabase sync failed.', results.every((result) => result.ok) ? 'success' : 'warning');
-}
-
-function updateHeroBgPreview(url) {
-  const preview = document.getElementById('heroBgPreview');
-  if (!preview) return;
-  preview.innerHTML = url
-    ? `<img src="${url}" alt="Hero Background" style="width:100%;height:100%;object-fit:cover;">`
-    : '<div class="placeholder"><i class="fas fa-image"></i><p>No image selected</p></div>';
-}
-
-function heroImgUpload(input) {
-  const file = input.files?.[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = (event) => {
-    const data = event.target?.result;
-    writeValue('hHeroBgUrl', data);
-    updateHeroBgPreview(data);
-  };
-  reader.readAsDataURL(file);
-}
-
-function loadHeroFields() {
-  const settings = NobleSite.state.siteSettings || {};
-  writeValue('hHeroHeadline', settings.heroHeadline || '');
-  writeValue('hHeroSubtext', settings.heroSubtext || '');
-  writeValue('hHeroBgUrl', settings.heroBgImage || '');
-  writeValue('hBtn1', settings.heroBtn1 || '');
-  writeValue('hBtn1Link', settings.heroBtn1Link || '');
-  writeValue('hBtn2', settings.heroBtn2 || '');
-  writeValue('hBtn2Link', settings.heroBtn2Link || '');
-  updateHeroBgPreview(settings.heroBgImage || '');
-}
-
-async function saveHero() {
-  const payload = {
-    ...NobleSite.state.siteSettings,
-    heroHeadline: document.getElementById('hHeroHeadline').value,
-    heroSubtext: document.getElementById('hHeroSubtext').value,
-    heroBgImage: document.getElementById('hHeroBgUrl').value,
-    heroBtn1: document.getElementById('hBtn1').value,
-    heroBtn1Link: document.getElementById('hBtn1Link').value,
-    heroBtn2: document.getElementById('hBtn2').value,
-    heroBtn2Link: document.getElementById('hBtn2Link').value
-  };
-  const result = await NobleSite.saveSetting('siteSettings', payload);
-  toast(result.ok ? 'Hero section saved!' : 'Hero saved locally. Supabase sync failed.', result.ok ? 'success' : 'warning');
-}
-
-function loadAboutFields() {
-  const settings = NobleSite.state.siteSettings || {};
-  writeValue('aTitle', settings.aboutTitle || '');
-  writeValue('aText', settings.aboutText || '');
-}
-
-async function saveAbout() {
-  const payload = {
-    ...NobleSite.state.siteSettings,
-    aboutTitle: document.getElementById('aTitle').value,
-    aboutText: document.getElementById('aText').value
-  };
-  const result = await NobleSite.saveSetting('siteSettings', payload);
-  toast(result.ok ? 'About section saved!' : 'About saved locally. Supabase sync failed.', result.ok ? 'success' : 'warning');
-}
-
-function getServices() {
-  return serviceList();
-}
-
-function renderServicesTable() {
-  const body = document.getElementById('servicesTbody');
-  if (!body) return;
-  const services = serviceList();
-  body.innerHTML = services.map((service, index) => `
-    <tr>
-      <td><div class="tbl-icon"><i class="fas ${service.icon || 'fa-bolt'}"></i></div></td>
-      <td style="font-weight:600">${service.name}</td>
-      <td style="color:rgba(255,255,255,.5);max-width:260px;font-size:.78rem">${service.description || ''}</td>
-      <td><span class="tbl-status ${service.status !== false ? 'on' : 'off'}">${service.status !== false ? 'Active' : 'Hidden'}</span></td>
-      <td>
-        <div class="tbl-actions">
-          <button class="tbl-btn edit" onclick="editService(${index})"><i class="fas fa-edit"></i> Edit</button>
-          <button class="tbl-btn toggle" onclick="toggleService(${index})"><i class="fas fa-eye${service.status !== false ? '-slash' : ''}"></i></button>
-          <button class="tbl-btn del" onclick="deleteService(${index})"><i class="fas fa-trash"></i></button>
-        </div>
-      </td>
-    </tr>
-  `).join('');
-}
-
-async function commitServices(services, successMessage) {
-  const result = await NobleSite.replaceServices(services);
-  renderServicesTable();
-  loadDashboard();
-  toast(result.ok ? successMessage : `${successMessage} Saved locally only because Supabase sync failed.`, result.ok ? 'success' : 'warning');
-}
-
-async function toggleService(index) {
-  const services = serviceList();
-  services[index].status = !(services[index].status !== false);
-  await commitServices(services, 'Service updated!');
-}
-
-async function deleteService(index) {
-  if (!confirm('Delete this service?')) return;
-  const services = serviceList();
-  services.splice(index, 1);
-  await commitServices(services, 'Service deleted.');
-}
-
-async function editService(index) {
-  const services = serviceList();
-  const current = services[index];
-  const name = prompt('Service Name:', current.name);
-  if (!name) return;
-  const description = prompt('Description:', current.description || '');
-  if (description == null) return;
-  const icon = prompt('FontAwesome icon class (e.g. fa-home):', current.icon || 'fa-bolt') || current.icon || 'fa-bolt';
-  services[index] = { ...current, name, description, icon };
-  await commitServices(services, 'Service updated!');
-}
-
-async function addService() {
-  const name = prompt('Service Name:');
-  if (!name) return;
-  const description = prompt('Short description:');
-  if (description == null) return;
-  const icon = prompt('FontAwesome icon (e.g. fa-bolt):') || 'fa-bolt';
-  const services = serviceList();
-  services.push({ id: Date.now(), name, description, icon, status: true, sort_order: services.length + 1 });
-  await commitServices(services, 'Service added!');
-}
-
-function getGallery() {
-  return galleryList();
-}
-
-function galleryImgUpload(input) {
-  const file = input.files?.[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = (event) => {
-    writeValue('gImg', event.target?.result || '');
-    toast('Image loaded. Click Add to Gallery to save it.', 'info');
-  };
-  reader.readAsDataURL(file);
-}
-
-function renderGalleryAdmin() {
-  const grid = document.getElementById('galleryAdminGrid');
-  if (!grid) return;
-  const items = galleryList();
-  if (!items.length) {
-    grid.innerHTML = '<p style="color:var(--text-dim);font-size:.82rem;grid-column:1/-1;text-align:center;padding:20px 0;">No gallery items yet. Add one above.</p>';
-    return;
-  }
-
-  grid.innerHTML = items.map((item, index) => `
-    <div class="gal-admin-card">
-      <img src="${item.img_url}" alt="${item.title}" loading="lazy">
-      <div class="gal-admin-info">
-        <h4>${item.title}</h4>
-        <span>${item.cat_label || item.cat} · ${item.location || ''}</span>
-        <div class="gal-admin-actions">
-          <button class="tbl-btn del" onclick="delGallery(${index})"><i class="fas fa-trash"></i> Remove</button>
-        </div>
-      </div>
-    </div>
-  `).join('');
-}
-
-async function commitGallery(items, successMessage) {
-  const result = await NobleSite.replaceGallery(items);
-  renderGalleryAdmin();
-  loadDashboard();
-  toast(result.ok ? successMessage : `${successMessage} Saved locally only because Supabase sync failed.`, result.ok ? 'success' : 'warning');
-}
-
-async function addGalleryItem() {
-  const title = readValue('gTitle');
-  const img = readValue('gImg');
-  if (!title || !img) {
-    toast('Title and image are required.', 'error');
-    return;
-  }
-
-  const select = document.getElementById('gCat');
-  const items = galleryList();
-  items.unshift({
-    id: Date.now(),
-    title,
-    cat: select?.value || 'general',
-    cat_label: select?.options?.[select.selectedIndex]?.text || 'Project',
-    location: readValue('gLoc'),
-    img_url: img
-  });
-
-  await commitGallery(items, 'Gallery item added!');
-  ['gTitle', 'gImg', 'gLoc'].forEach((id) => writeValue(id, ''));
-}
-
-async function delGallery(index) {
-  if (!confirm('Remove this gallery item?')) return;
-  const items = galleryList();
-  items.splice(index, 1);
-  await commitGallery(items, 'Gallery item removed.');
-}
-
-function getTestimonials() {
-  return testimonialList();
-}
-
-function renderTestiAdmin() {
-  const grid = document.getElementById('testiAdminGrid');
-  if (!grid) return;
-  const items = testimonialList();
-  if (!items.length) {
-    grid.innerHTML = '<p style="color:var(--text-dim);font-size:.82rem;text-align:center;padding:20px 0;grid-column:1/-1;">No testimonials yet.</p>';
-    return;
-  }
-
-  grid.innerHTML = items.map((item, index) => `
-    <div class="testi-admin-card">
-      <div class="ta-stars">${'★'.repeat(item.stars || 5)}${'☆'.repeat(Math.max(0, 5 - (item.stars || 5)))}</div>
-      <div class="ta-text">"${item.review}"</div>
-      <div class="ta-author">${item.name}</div>
-      <div class="ta-role">${item.role || ''}</div>
-      <div class="ta-actions">
-        <button class="tbl-btn del" onclick="delTesti(${index})"><i class="fas fa-trash"></i></button>
-      </div>
-    </div>
-  `).join('');
-}
-
-async function commitTestimonials(items, successMessage) {
-  const result = await NobleSite.replaceTestimonials(items);
-  renderTestiAdmin();
-  loadDashboard();
-  toast(result.ok ? successMessage : `${successMessage} Saved locally only because Supabase sync failed.`, result.ok ? 'success' : 'warning');
-}
-
-async function addTestimonial() {
-  const name = readValue('tName');
-  const review = readValue('tText');
-  if (!name || !review) {
-    toast('Name and review are required.', 'error');
-    return;
-  }
-
-  const items = testimonialList();
-  items.unshift({
-    id: Date.now(),
-    name,
-    role: readValue('tRole'),
-    review,
-    stars: Number(document.getElementById('tStars')?.value || 5),
-    active: true
-  });
-
-  await commitTestimonials(items, 'Testimonial added!');
-  ['tName', 'tRole', 'tText'].forEach((id) => writeValue(id, ''));
-}
-
-async function delTesti(index) {
-  if (!confirm('Delete this testimonial?')) return;
-  const items = testimonialList();
-  items.splice(index, 1);
-  await commitTestimonials(items, 'Testimonial deleted.');
-}
-
-function loadContactInfoFields() {
-  const contact = NobleSite.state.contactInfo || {};
-  Object.entries({ ...DEFAULT_CONTACT_INFO, ...contact }).forEach(([id, value]) => writeValue(id, value));
-}
-
-async function saveContactInfo() {
-  const payload = {};
-  ['ci1', 'ci2', 'ciEmail', 'ciWa', 'ciArea', 'ciHr1', 'ciHr2', 'ciHr3', 'ciFb', 'ciIg'].forEach((id) => {
-    payload[id] = document.getElementById(id)?.value || '';
-  });
-  const result = await NobleSite.saveSetting('contactInfo', payload);
-  toast(result.ok ? 'Contact info saved!' : 'Contact info saved locally. Supabase sync failed.', result.ok ? 'success' : 'warning');
 }
 
 function loadSubmissions() {
@@ -610,6 +1040,9 @@ function updateSubBadge() {
 function loadSettingsFields() {
   writeValue('sSupaUrl', SUPABASE_URL);
   writeValue('sSupaKey', SUPABASE_ANON);
+  writeValue('footerCreditText', NobleSite.state.siteSettings?.footerCreditText || DEFAULT_SITE_SETTINGS.footerCreditText);
+  writeValue('footerCreditLink', NobleSite.state.siteSettings?.footerCreditLink || DEFAULT_SITE_SETTINGS.footerCreditLink);
+
   const flags = NobleSite.state.featureFlags || DEFAULT_FEATURE_FLAGS;
   const wa = document.getElementById('togWa');
   const anim = document.getElementById('togAnim');
@@ -640,6 +1073,16 @@ async function saveFeatureFlags() {
   };
   const result = await NobleSite.saveSetting('featureFlags', payload);
   toast(result.ok ? 'Feature settings saved!' : 'Feature settings saved locally. Supabase sync failed.', result.ok ? 'success' : 'warning');
+}
+
+async function saveFooterCredit() {
+  const payload = {
+    ...NobleSite.state.siteSettings,
+    footerCreditText: readValue('footerCreditText') || DEFAULT_SITE_SETTINGS.footerCreditText,
+    footerCreditLink: readValue('footerCreditLink') || DEFAULT_SITE_SETTINGS.footerCreditLink
+  };
+  const result = await NobleSite.saveSetting('siteSettings', payload);
+  toast(result.ok ? 'Footer credit saved!' : 'Footer credit saved locally. Supabase sync failed.', result.ok ? 'success' : 'warning');
 }
 
 async function testSupabase() {
@@ -689,14 +1132,121 @@ async function resetAll() {
   setTimeout(() => location.reload(), 700);
 }
 
+async function initAdmin() {
+  await NobleSite.loadState();
+  loadAdminLogos();
+  loadServiceIconChoices();
+  loadHeroFields();
+  loadAboutFields();
+  loadContactInfoFields();
+  loadLogoPreview();
+  loadBrandingFields();
+  loadSettingsFields();
+  loadDashboard();
+  updateSubBadge();
+  resetServiceForm();
+  resetGalleryForm();
+  resetTestimonialForm();
+  resetTeamMemberForm();
+  renderServicesTable();
+  renderGalleryAdmin();
+  renderTestiAdmin();
+  renderTeamAdmin();
+  updateGallerySelectionSummary();
+}
+
+function doLogin() {
+  const creds = getAdminCreds();
+  const user = readValue('loginUser');
+  const pass = document.getElementById('loginPass')?.value || '';
+  if (user === creds.user && pass === creds.pass) {
+    document.getElementById('loginScreen').style.display = 'none';
+    initAdmin();
+    return;
+  }
+  document.getElementById('loginErr').style.display = 'block';
+  document.getElementById('loginPass').value = '';
+}
+
+function signOut() {
+  document.getElementById('loginScreen').style.display = 'flex';
+  writeValue('loginUser', '');
+  writeValue('loginPass', '');
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
   await NobleSite.loadState();
   loadAdminLogos();
   loadSettingsFields();
+  loadServiceIconChoices();
+  updateTinyToastPosition();
+  document.getElementById('svcIcon')?.addEventListener('input', (event) => updateServiceIconPreview(event.target.value || 'fa-bolt'));
+  document.getElementById('svcName')?.addEventListener('input', updateServiceCardPreview);
+  document.getElementById('svcDescription')?.addEventListener('input', updateServiceCardPreview);
+  document.getElementById('svcImage')?.addEventListener('input', (event) => updateServiceImagePreview(event.target.value || ''));
+  document.getElementById('gImg')?.addEventListener('input', (event) => updateGalleryPreview(event.target.value || ''));
+  document.getElementById('hHeroBgUrl')?.addEventListener('input', (event) => updateHeroBgPreview(event.target.value || ''));
+  document.getElementById('tmImage')?.addEventListener('input', (event) => updateTeamPreview(event.target.value || ''));
   document.getElementById('subModal')?.addEventListener('click', (event) => {
     if (event.target === event.currentTarget) closeSubModal();
   });
   document.addEventListener('keydown', (event) => {
     if (event.key === 'Escape') closeSubModal();
   });
+  resetServiceForm();
+  resetGalleryForm();
+  resetTestimonialForm();
+  resetTeamMemberForm();
+  updateGallerySelectionSummary();
 });
+
+window.toggleSidebar = toggleSidebar;
+window.showPanel = showPanel;
+window.doLogin = doLogin;
+window.signOut = signOut;
+window.handleLogoUpload = handleLogoUpload;
+window.applyLogoUrl = applyLogoUrl;
+window.removeLogo = removeLogo;
+window.saveBranding = saveBranding;
+window.heroImgUpload = heroImgUpload;
+window.saveHero = saveHero;
+window.saveAbout = saveAbout;
+window.openServiceEditor = openServiceEditor;
+window.resetServiceForm = resetServiceForm;
+window.submitServiceForm = submitServiceForm;
+window.toggleService = toggleService;
+window.toggleServiceHomepage = toggleServiceHomepage;
+window.deleteService = deleteService;
+window.selectServiceIcon = selectServiceIcon;
+window.serviceImgUpload = serviceImgUpload;
+window.galleryImgUpload = galleryImgUpload;
+window.galleryBulkUpload = galleryBulkUpload;
+window.toggleGallerySelection = toggleGallerySelection;
+window.toggleAllGallerySelections = toggleAllGallerySelections;
+window.clearGallerySelection = clearGallerySelection;
+window.deleteSelectedGallery = deleteSelectedGallery;
+window.addGalleryItem = addGalleryItem;
+window.editGallery = editGallery;
+window.delGallery = delGallery;
+window.resetGalleryForm = resetGalleryForm;
+window.submitTestimonialForm = submitTestimonialForm;
+window.editTestimonial = editTestimonial;
+window.toggleTestimonial = toggleTestimonial;
+window.delTesti = delTesti;
+window.resetTestimonialForm = resetTestimonialForm;
+window.teamImageUpload = teamImageUpload;
+window.submitTeamMemberForm = submitTeamMemberForm;
+window.resetTeamMemberForm = resetTeamMemberForm;
+window.editTeamMember = editTeamMember;
+window.deleteTeamMember = deleteTeamMember;
+window.saveContactInfo = saveContactInfo;
+window.viewSubmission = viewSubmission;
+window.closeSubModal = closeSubModal;
+window.delSubmission = delSubmission;
+window.saveSupabase = saveSupabase;
+window.saveFeatureFlags = saveFeatureFlags;
+window.saveFooterCredit = saveFooterCredit;
+window.testSupabase = testSupabase;
+window.changeCredentials = changeCredentials;
+window.clearSubmissions = clearSubmissions;
+window.resetAll = resetAll;

@@ -5,24 +5,58 @@
 const SUPABASE_URL = 'https://aukkmeakwofvgzzvqxej.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF1a2ttZWFrd29mdmd6enZxeGVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0MDIxNzksImV4cCI6MjA5Mzk3ODE3OX0.00fa_JLFxEcmWbBMsSp0qvhPb1iYcdiHyO_GEEfOY7g';
 
-const IS_SUBPAGE = window.location.pathname.includes('/pages/');
+const IS_SUBPAGE = window.location.pathname.includes('/pages/') || window.location.pathname.includes('/admin/');
 const ROOT = IS_SUBPAGE ? '../' : '';
 
 const DEFAULT_SITE_SETTINGS = {
-  heroHeadline: 'Professional<br><span>Electrical</span><br>Solutions',
-  heroSubtext: 'Certified and trusted electrical services for homes and businesses across Accra. We deliver safe, neat, and reliable workmanship every single time.',
+  heroHeadline: 'Powering Homes.<br><span>Building</span><br>Futures.',
+  heroSubtext: 'Noble Electricals and Estates Developers delivers reliable electrical solutions and quality estate development services across Accra and surrounding areas.',
   heroBtn1: 'Call Now',
   heroBtn1Link: 'tel:0551897182',
   heroBtn2: 'Get Free Quote',
   heroBtn2Link: `${ROOT}pages/contact.html`,
-  aboutTitle: 'Trusted Electrical Experts in Accra',
-  aboutText: 'At Noble Electricals, we combine technical expertise with a relentless commitment to safety. Our certified team serves homes, offices, and commercial buildings across Accra with precision and professionalism.'
+  aboutTitle: 'Delivering Excellence in Electrical Engineering & Property Development',
+  aboutText: 'Noble Electricals and Estates Developers is a professional electrical engineering and property development company committed to delivering reliable electrical solutions and quality estate development services across Accra and surrounding areas.',
+  aboutStat1: '500+',
+  aboutStat1Label: 'Projects',
+  aboutYears: '10+',
+  aboutSatisfaction: '98%',
+  aboutClients: '200+',
+  footerCreditText: 'Created and developed by Galaxy Studio',
+  footerCreditLink: 'https://galaxystudio.site',
+  teamMembers: [
+    {
+      id: 1,
+      name: 'Osman Bilad',
+      role: 'Founder & Lead Electrician',
+      bio: '10+ years of experience in residential, commercial, and industrial electrical installations across Accra.',
+      image_url: '',
+      icon: 'fa-hard-hat'
+    },
+    {
+      id: 2,
+      name: 'Senior Technician',
+      role: 'Solar & Renewables Specialist',
+      bio: 'Certified solar panel installation expert with hands-on experience in both on-grid and off-grid systems.',
+      image_url: '',
+      icon: 'fa-hard-hat'
+    },
+    {
+      id: 3,
+      name: 'Field Technician',
+      role: 'Fault Finding & Repairs',
+      bio: 'Specialist in rapid fault diagnosis and precision repairs across residential and commercial properties.',
+      image_url: '',
+      icon: 'fa-hard-hat'
+    }
+  ]
 };
 
 const DEFAULT_BRANDING = {
-  name: 'Noble Electricals',
-  tag: 'Safe • Neat • Reliable',
-  color: '#FFC107'
+  name: 'Noble Electricals and Estates Developers',
+  tag: 'Powering Homes. Building Futures.',
+  color: '#FFC107',
+  logo: 'logo.png'
 };
 
 const DEFAULT_CONTACT_INFO = {
@@ -45,12 +79,39 @@ const DEFAULT_FEATURE_FLAGS = {
 };
 
 const DEFAULT_SERVICES = [
-  { id: 1, icon: 'fa-home', name: 'House Wiring', description: 'Complete residential wiring for new builds and renovations.', status: true, sort_order: 1 },
-  { id: 2, icon: 'fa-solar-panel', name: 'Solar Installations', description: 'Expert solar panel setup and integration.', status: true, sort_order: 2 },
-  { id: 3, icon: 'fa-search', name: 'Fault Finding & Repairs', description: 'Fast diagnosis and lasting repairs for any electrical fault.', status: true, sort_order: 3 },
-  { id: 4, icon: 'fa-lightbulb', name: 'Lighting & Maintenance', description: 'Professional lighting design and installation.', status: true, sort_order: 4 },
-  { id: 5, icon: 'fa-plug', name: 'Electrical Upgrades', description: 'Panel upgrades, rewiring and smart home integration.', status: true, sort_order: 5 },
-  { id: 6, icon: 'fa-building', name: 'Commercial Electrical', description: 'Full electrical solutions for offices and industrial facilities.', status: true, sort_order: 6 }
+  { id: 1, icon: 'fa-bolt', name: 'Electrical Installations (Residential & Commercial)', description: 'Reliable electrical installations for homes, offices, shops, and commercial properties.', status: true, sort_order: 1, show_on_homepage: true },
+  { id: 2, icon: 'fa-screwdriver-wrench', name: 'Electrical Repairs & Maintenance', description: 'Prompt repairs and routine maintenance to keep electrical systems safe and efficient.', status: true, sort_order: 2, show_on_homepage: true },
+  { id: 3, icon: 'fa-plug-circle-bolt', name: 'Wiring & Rewiring', description: 'Professional wiring and rewiring services for new buildings, upgrades, and renovations.', status: true, sort_order: 3, show_on_homepage: true },
+  { id: 4, icon: 'fa-lightbulb', name: 'Lighting Design & Installation', description: 'Functional and attractive lighting solutions for residential and commercial spaces.', status: true, sort_order: 4, show_on_homepage: true },
+  { id: 5, icon: 'fa-shield-halved', name: 'Electrical Safety Inspections', description: 'Detailed inspections to help ensure safety, compliance, and peace of mind.', status: true, sort_order: 5, show_on_homepage: true },
+  { id: 6, icon: 'fa-house', name: 'House Wiring', description: 'Safe and neat house wiring carried out with quality workmanship.', status: true, sort_order: 6, show_on_homepage: true },
+  { id: 7, icon: 'fa-solar-panel', name: 'Solar Installations', description: 'Solar installation services designed to support dependable power solutions.', status: true, sort_order: 7, show_on_homepage: false },
+  { id: 8, icon: 'fa-magnifying-glass', name: 'Fault Finding & Repairs', description: 'Fast fault finding and effective repairs for residential and commercial systems.', status: true, sort_order: 8, show_on_homepage: false },
+  { id: 9, icon: 'fa-wrench', name: 'Lighting & Maintenance', description: 'Ongoing lighting support and maintenance services for homes and businesses.', status: true, sort_order: 9, show_on_homepage: false },
+  { id: 10, icon: 'fa-map-location-dot', name: 'Land Sale', description: 'Land sale services to support property ownership and development goals.', status: true, sort_order: 10, show_on_homepage: false },
+  { id: 11, icon: 'fa-road', name: 'Land Sales & Development', description: 'Land sales and development support for residential and commercial projects.', status: true, sort_order: 11, show_on_homepage: false },
+  { id: 12, icon: 'fa-building', name: 'Building & Construction', description: 'Construction support and property development services delivered with professionalism.', status: true, sort_order: 12, show_on_homepage: false },
+  { id: 13, icon: 'fa-file-signature', name: 'Land Registration Assistance', description: 'Guidance and assistance with land registration and documentation processes.', status: true, sort_order: 13, show_on_homepage: false },
+  { id: 14, icon: 'fa-ruler-combined', name: 'Professional Land Survey', description: 'Professional land survey services to support planning, ownership, and development.', status: true, sort_order: 14, show_on_homepage: false }
+];
+
+const SERVICE_ICON_CHOICES = [
+  { name: 'Bolt', icon: 'fa-bolt' },
+  { name: 'Plug', icon: 'fa-plug-circle-bolt' },
+  { name: 'Wrench', icon: 'fa-screwdriver-wrench' },
+  { name: 'Lightbulb', icon: 'fa-lightbulb' },
+  { name: 'Shield', icon: 'fa-shield-halved' },
+  { name: 'House', icon: 'fa-house' },
+  { name: 'Solar Panel', icon: 'fa-solar-panel' },
+  { name: 'Search', icon: 'fa-magnifying-glass' },
+  { name: 'Tools', icon: 'fa-tools' },
+  { name: 'Cable', icon: 'fa-network-wired' },
+  { name: 'Building', icon: 'fa-building' },
+  { name: 'Road', icon: 'fa-road' },
+  { name: 'Map Pin', icon: 'fa-map-location-dot' },
+  { name: 'Document', icon: 'fa-file-signature' },
+  { name: 'Ruler', icon: 'fa-ruler-combined' },
+  { name: 'Tower', icon: 'fa-broadcast-tower' }
 ];
 
 const DEFAULT_GALLERY = [
@@ -67,41 +128,89 @@ const DEFAULT_TESTIMONIALS = [
 ];
 
 const SERVICE_META = {
+  'Electrical Installations (Residential & Commercial)': {
+    slug: 'electrical-installations',
+    tag: 'Electrical Services',
+    image: 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=800&q=80&auto=format',
+    bullets: ['Residential installations', 'Commercial installations', 'New project setup', 'System expansion works', 'Safe installation practices', 'Quality workmanship']
+  },
+  'Electrical Repairs & Maintenance': {
+    slug: 'electrical-repairs-maintenance',
+    tag: 'Electrical Services',
+    image: 'https://images.unsplash.com/photo-1621905251918-b7a3b3e24b5c?w=800&q=80&auto=format',
+    bullets: ['Electrical fault repairs', 'Routine maintenance visits', 'System performance checks', 'Preventive servicing', 'Safety-focused workmanship', 'Reliable support']
+  },
+  'Wiring & Rewiring': {
+    slug: 'wiring-rewiring',
+    tag: 'Electrical Services',
+    image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80&auto=format',
+    bullets: ['New wiring installations', 'Full rewiring projects', 'Renovation support', 'Cable routing and fitting', 'Safe electrical layout', 'Neat finishing']
+  },
+  'Lighting Design & Installation': {
+    slug: 'lighting-design-installation',
+    tag: 'Electrical Services',
+    image: 'https://images.unsplash.com/photo-1565814636199-ae8133055c1c?w=800&q=80&auto=format',
+    bullets: ['Lighting layout planning', 'Indoor lighting installation', 'Outdoor lighting installation', 'Decorative and task lighting', 'Energy-conscious solutions', 'Professional setup']
+  },
+  'Electrical Safety Inspections': {
+    slug: 'electrical-safety-inspections',
+    tag: 'Electrical Services',
+    image: 'https://images.unsplash.com/photo-1474631245212-32dc3c8310c6?w=800&q=80&auto=format',
+    bullets: ['Electrical system checks', 'Safety assessments', 'Risk identification', 'Inspection reporting', 'Property compliance support', 'Customer peace of mind']
+  },
   'House Wiring': {
     slug: 'wiring',
-    tag: 'Residential',
+    tag: 'Electrical Services',
     image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80&auto=format',
-    bullets: ['Full new-build electrical installation', 'Rewiring of existing properties', 'Consumer unit installation', 'Socket and switch installation', 'Earthing and bonding systems', 'Electrical safety certificates']
+    bullets: ['Residential house wiring', 'New build wiring', 'Renovation wiring support', 'Socket and switch fitting', 'Safe cable installations', 'Quality finishing']
   },
   'Solar Installations': {
     slug: 'solar',
-    tag: 'Renewable Energy',
+    tag: 'Electrical Services',
     image: 'https://images.unsplash.com/photo-1509391366360-2e959784a276?w=800&q=80&auto=format',
-    bullets: ['Solar panel supply and installation', 'Inverter and battery setup', 'On-grid and off-grid systems', 'Energy consumption assessment', 'System monitoring and maintenance', 'Warranty and after-sales support']
+    bullets: ['Solar panel installations', 'Solar power support', 'Residential solar setup', 'Commercial solar setup', 'Reliable energy solutions', 'Professional service delivery']
   },
   'Fault Finding & Repairs': {
     slug: 'faults',
-    tag: 'Diagnostics',
+    tag: 'Electrical Services',
     image: 'https://images.unsplash.com/photo-1621905251918-b7a3b3e24b5c?w=800&q=80&auto=format',
-    bullets: ['Tripping circuit breakers', 'Power outages and blackouts', 'Burning smells or sparking', 'Faulty sockets and switches', 'Earthing faults and leakages', 'Emergency callouts']
+    bullets: ['Fault diagnosis', 'Electrical troubleshooting', 'Repair of damaged points', 'Residential repairs', 'Commercial repairs', 'Reliable restoration']
   },
   'Lighting & Maintenance': {
     slug: 'lighting',
-    tag: 'Illumination',
+    tag: 'Electrical Services',
     image: 'https://images.unsplash.com/photo-1565814636199-ae8133055c1c?w=800&q=80&auto=format',
-    bullets: ['Indoor and outdoor lighting design', 'LED retrofit and upgrades', 'Security and floodlighting', 'Smart lighting controls', 'Scheduled maintenance contracts', 'Emergency lighting systems']
+    bullets: ['Lighting maintenance', 'Fixture support', 'Routine servicing', 'Home lighting upkeep', 'Commercial lighting upkeep', 'Reliable maintenance response']
   },
-  'Electrical Upgrades': {
-    slug: 'upgrades',
-    tag: 'Modernisation',
-    image: 'https://images.unsplash.com/photo-1474631245212-32dc3c8310c6?w=800&q=80&auto=format',
-    bullets: ['Consumer unit upgrades', 'Whole-property rewiring', 'Additional circuits and power points', 'EV charger installation', 'Smart home wiring systems', 'Surge protection installation']
+  'Land Sale': {
+    slug: 'land-sale',
+    tag: 'Estate & Property Development Services',
+    image: 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=800&q=80&auto=format',
+    bullets: ['Land sale support', 'Property acquisition guidance', 'Site selection assistance', 'Development-ready options', 'Professional handling', 'Client-focused service']
   },
-  'Commercial Electrical': {
-    slug: 'commercial',
-    tag: 'Commercial & Industrial',
-    image: 'https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=800&q=80&auto=format',
-    bullets: ['Office and retail electrical fit-outs', 'Industrial power installations', 'Three-phase power supply', 'Data and structured cabling', 'Fire alarm and safety systems', 'Scheduled maintenance contracts']
+  'Land Sales & Development': {
+    slug: 'land-sales-development',
+    tag: 'Estate & Property Development Services',
+    image: 'https://images.unsplash.com/photo-1460317442991-0ec209397118?w=800&q=80&auto=format',
+    bullets: ['Land sales guidance', 'Land development support', 'Residential project support', 'Commercial project support', 'Site preparation coordination', 'Reliable advisory service']
+  },
+  'Building & Construction': {
+    slug: 'building-construction',
+    tag: 'Estate & Property Development Services',
+    image: 'https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=800&q=80&auto=format',
+    bullets: ['Construction support', 'Building development coordination', 'Project planning support', 'Residential development works', 'Commercial development works', 'Quality-focused delivery']
+  },
+  'Land Registration Assistance': {
+    slug: 'land-registration-assistance',
+    tag: 'Estate & Property Development Services',
+    image: 'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=800&q=80&auto=format',
+    bullets: ['Land document guidance', 'Registration process support', 'Ownership paperwork assistance', 'Property documentation help', 'Professional coordination', 'Reliable customer support']
+  },
+  'Professional Land Survey': {
+    slug: 'professional-land-survey',
+    tag: 'Estate & Property Development Services',
+    image: 'https://images.unsplash.com/photo-1494526585095-c41746248156?w=800&q=80&auto=format',
+    bullets: ['Land measurement services', 'Boundary identification', 'Site planning support', 'Survey coordination', 'Development preparation', 'Professional reporting']
   }
 };
 
@@ -142,6 +251,75 @@ function stringifySetting(value) {
 
 function clone(value) {
   return JSON.parse(JSON.stringify(value));
+}
+
+function normalizeService(service, index = 0) {
+  if (!service) return null;
+  return {
+    id: service.id ?? Date.now() + index,
+    icon: service.icon || 'fa-bolt',
+    icon_label: service.icon_label || service.iconLabel || '',
+    name: service.name || `Service ${index + 1}`,
+    description: service.description ?? service.desc ?? '',
+    status: service.status !== false,
+    sort_order: Number(service.sort_order ?? service.sortOrder ?? index + 1) || index + 1,
+    image_url: service.image_url ?? service.imageUrl ?? service.image ?? '',
+    show_on_homepage: service.show_on_homepage ?? service.showOnHomepage ?? index < 6
+  };
+}
+
+function normalizeTeamMember(member, index = 0) {
+  if (!member) return null;
+  return {
+    id: member.id ?? Date.now() + index,
+    name: member.name || `Team Member ${index + 1}`,
+    role: member.role || 'Team Member',
+    bio: member.bio || member.description || '',
+    image_url: member.image_url ?? member.imageUrl ?? member.image ?? '',
+    icon: member.icon || 'fa-hard-hat'
+  };
+}
+
+function dedupeServices(services = []) {
+  const seen = new Set();
+  return services.filter((service) => {
+    const key = slugify(service.name || service.id || '');
+    if (!key) return true;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+function normalizeGalleryItem(item, index = 0) {
+  if (!item) return null;
+  const imgUrl = item.img_url ?? item.img ?? item.image ?? '';
+  return {
+    id: item.id ?? Date.now() + index,
+    title: item.title || `Project ${index + 1}`,
+    cat: item.cat || 'general',
+    cat_label: item.cat_label ?? item.catLabel ?? item.cat ?? 'Project',
+    location: item.location || '',
+    img_url: imgUrl
+  };
+}
+
+function normalizeTestimonial(item, index = 0) {
+  if (!item) return null;
+  return {
+    id: item.id ?? Date.now() + index,
+    name: item.name || `Client ${index + 1}`,
+    role: item.role || '',
+    review: item.review ?? item.text ?? '',
+    stars: Number(item.stars || 5) || 5,
+    active: item.active !== false
+  };
+}
+
+function resolveAssetPath(path) {
+  if (!path) return '';
+  if (/^(data:|https?:|blob:|file:)/i.test(path)) return path;
+  return `${ROOT}${String(path).replace(/^(\.\/|\/)+/, '')}`;
 }
 
 const Supabase = {
@@ -234,19 +412,24 @@ const NobleSite = {
 
   mergeDefaults() {
     this.state.siteSettings = { ...DEFAULT_SITE_SETTINGS, ...(this.state.siteSettings || {}) };
+    this.state.siteSettings.teamMembers = (this.state.siteSettings.teamMembers || DEFAULT_SITE_SETTINGS.teamMembers).map(normalizeTeamMember).filter(Boolean);
     this.state.branding = { ...DEFAULT_BRANDING, ...(this.state.branding || {}) };
     this.state.contactInfo = { ...DEFAULT_CONTACT_INFO, ...(this.state.contactInfo || {}) };
     this.state.featureFlags = { ...DEFAULT_FEATURE_FLAGS, ...(this.state.featureFlags || {}) };
-    this.state.services = (this.state.services || []).length ? this.state.services : clone(DEFAULT_SERVICES);
-    this.state.gallery = (this.state.gallery || []).length ? this.state.gallery : clone(DEFAULT_GALLERY);
-    this.state.testimonials = (this.state.testimonials || []).length ? this.state.testimonials : clone(DEFAULT_TESTIMONIALS);
+    this.state.services = dedupeServices((this.state.services || []).map(normalizeService).filter(Boolean));
+    this.state.gallery = (this.state.gallery || []).map(normalizeGalleryItem).filter(Boolean);
+    this.state.testimonials = (this.state.testimonials || []).map(normalizeTestimonial).filter(Boolean);
+    if (!this.state.services.length) this.state.services = clone(DEFAULT_SERVICES);
+    if (!this.state.gallery.length) this.state.gallery = clone(DEFAULT_GALLERY);
+    if (!this.state.testimonials.length) this.state.testimonials = clone(DEFAULT_TESTIMONIALS);
     this.state.submissions = this.state.submissions || [];
   },
 
-  async loadState() {
+  hydrateLocalState() {
     const localState = {
       siteSettings: LocalStore.get('siteSettings', clone(DEFAULT_SITE_SETTINGS)),
       branding: LocalStore.get('branding', clone(DEFAULT_BRANDING)),
+      logo: LocalStore.get('logo', ''),
       contactInfo: LocalStore.get('contactInfo', clone(DEFAULT_CONTACT_INFO)),
       featureFlags: LocalStore.get('featureFlags', clone(DEFAULT_FEATURE_FLAGS)),
       services: LocalStore.get('services', clone(DEFAULT_SERVICES)),
@@ -256,7 +439,13 @@ const NobleSite = {
     };
 
     this.state = { ...this.state, ...localState, source: 'local', supabaseReady: false, missingTables: [] };
+    if (localState.logo && !this.state.branding.logo) this.state.branding.logo = localState.logo;
     this.mergeDefaults();
+    return this.state;
+  },
+
+  async loadState() {
+    this.hydrateLocalState();
 
     if (!Supabase.enabled) return this.state;
 
@@ -286,12 +475,7 @@ const NobleSite = {
 
     if (fetchers[1].status === 'fulfilled') {
       const services = (fetchers[1].value || []).map((item) => ({
-        id: item.id,
-        icon: item.icon || 'fa-bolt',
-        name: item.name,
-        description: item.description || '',
-        status: item.status !== false,
-        sort_order: item.sort_order ?? 0
+        ...normalizeService(item)
       }));
       if (services.length) {
         this.state.services = services;
@@ -304,12 +488,7 @@ const NobleSite = {
 
     if (fetchers[2].status === 'fulfilled') {
       const gallery = (fetchers[2].value || []).map((item) => ({
-        id: item.id,
-        title: item.title,
-        cat: item.cat || 'general',
-        cat_label: item.cat_label || item.cat || 'Project',
-        location: item.location || '',
-        img_url: item.img_url
+        ...normalizeGalleryItem(item)
       }));
       if (gallery.length) {
         this.state.gallery = gallery;
@@ -322,12 +501,7 @@ const NobleSite = {
 
     if (fetchers[3].status === 'fulfilled') {
       const testimonials = (fetchers[3].value || []).map((item) => ({
-        id: item.id,
-        name: item.name,
-        role: item.role || '',
-        review: item.review || '',
-        stars: item.stars || 5,
-        active: item.active !== false
+        ...normalizeTestimonial(item)
       }));
       if (testimonials.length) {
         this.state.testimonials = testimonials;
@@ -381,10 +555,7 @@ const NobleSite = {
   },
 
   async replaceServices(services) {
-    this.state.services = services.map((service, index) => ({
-      ...service,
-      sort_order: service.sort_order ?? index + 1
-    }));
+    this.state.services = services.map((service, index) => normalizeService(service, index)).filter(Boolean);
     this.persistState();
 
     try {
@@ -394,10 +565,13 @@ const NobleSite = {
       if (this.state.services.length) {
         await Supabase.insert('services', this.state.services.map((service) => ({
           icon: service.icon,
+          icon_label: service.icon_label || '',
           name: service.name,
           description: service.description,
           status: service.status !== false,
-          sort_order: service.sort_order
+          sort_order: service.sort_order,
+          image_url: service.image_url || '',
+          show_on_homepage: service.show_on_homepage !== false
         })));
       }
       await this.loadState();
@@ -408,15 +582,15 @@ const NobleSite = {
   },
 
   async replaceGallery(gallery) {
-    this.state.gallery = gallery;
+    this.state.gallery = gallery.map((item, index) => normalizeGalleryItem(item, index)).filter(Boolean);
     this.persistState();
 
     try {
       const remote = await Supabase.select('gallery', 'id');
       const ids = (remote || []).map((row) => row.id);
       if (ids.length) await Supabase.remove('gallery', `id=in.(${ids.join(',')})`);
-      if (gallery.length) {
-        await Supabase.insert('gallery', gallery.map((item) => ({
+      if (this.state.gallery.length) {
+        await Supabase.insert('gallery', this.state.gallery.map((item) => ({
           title: item.title,
           cat: item.cat,
           cat_label: item.cat_label,
@@ -432,15 +606,15 @@ const NobleSite = {
   },
 
   async replaceTestimonials(testimonials) {
-    this.state.testimonials = testimonials;
+    this.state.testimonials = testimonials.map((item, index) => normalizeTestimonial(item, index)).filter(Boolean);
     this.persistState();
 
     try {
       const remote = await Supabase.select('testimonials', 'id');
       const ids = (remote || []).map((row) => row.id);
       if (ids.length) await Supabase.remove('testimonials', `id=in.(${ids.join(',')})`);
-      if (testimonials.length) {
-        await Supabase.insert('testimonials', testimonials.map((item) => ({
+      if (this.state.testimonials.length) {
+        await Supabase.insert('testimonials', this.state.testimonials.map((item) => ({
           name: item.name,
           role: item.role,
           review: item.review,
@@ -517,11 +691,8 @@ function extractTableName(error, fallback) {
 function renderLogo(selector) {
   const el = document.querySelector(selector);
   if (!el) return;
-  if (NobleSite.state.branding.logo) {
-    el.innerHTML = `<img src="${NobleSite.state.branding.logo}" alt="${NobleSite.state.branding.name} logo" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;">`;
-  } else {
-    el.innerHTML = '<i class="fas fa-bolt"></i>';
-  }
+  const logoSrc = resolveAssetPath(NobleSite.state.branding.logo || DEFAULT_BRANDING.logo);
+  el.innerHTML = `<img src="${logoSrc}" alt="${NobleSite.state.branding.name} logo" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;">`;
 }
 
 function buildNavbar(activePage) {
@@ -563,6 +734,9 @@ function buildNavbar(activePage) {
 function buildFooter() {
   const branding = NobleSite.state.branding;
   const contact = NobleSite.state.contactInfo;
+  const siteSettings = NobleSite.state.siteSettings || {};
+  const creditText = siteSettings.footerCreditText || DEFAULT_SITE_SETTINGS.footerCreditText;
+  const creditLink = siteSettings.footerCreditLink || DEFAULT_SITE_SETTINGS.footerCreditLink;
   return `
     <footer id="footer">
       <div class="footer-top">
@@ -612,6 +786,7 @@ function buildFooter() {
         <div class="footer-bottom">
           <p>&copy; ${new Date().getFullYear()} ${branding.name}. All rights reserved.</p>
           <p class="fy">${branding.tag}</p>
+          <p class="fy">${creditLink ? `<a href="${creditLink}" target="_blank" rel="noreferrer">${formatFooterCredit(creditText)}</a>` : formatFooterCredit(creditText)}</p>
         </div>
       </div>
     </footer>
@@ -623,16 +798,25 @@ function buildFooter() {
 }
 
 async function initShared(activePage) {
+  const renderSharedLayout = () => {
+    const navMount = document.getElementById('nav-mount');
+    if (navMount) navMount.innerHTML = buildNavbar(activePage);
+
+    const footerMount = document.getElementById('footer-mount');
+    if (footerMount) footerMount.innerHTML = buildFooter();
+
+    renderLogo('#navLogoIcon');
+    renderLogo('#footerLogoIcon');
+    updateFavicons();
+    document.documentElement.style.setProperty('--yellow', NobleSite.state.branding.color || DEFAULT_BRANDING.color);
+    applySiteSettings();
+    syncContactLinks();
+  };
+
+  NobleSite.hydrateLocalState?.();
+  renderSharedLayout();
   await NobleSite.loadState();
-
-  const navMount = document.getElementById('nav-mount');
-  if (navMount) navMount.innerHTML = buildNavbar(activePage);
-
-  const footerMount = document.getElementById('footer-mount');
-  if (footerMount) footerMount.innerHTML = buildFooter();
-
-  renderLogo('#navLogoIcon');
-  renderLogo('#footerLogoIcon');
+  renderSharedLayout();
 
   const navbar = document.getElementById('navbar');
   window.addEventListener('scroll', () => {
@@ -664,14 +848,19 @@ async function initShared(activePage) {
     }
   });
 
-  document.documentElement.style.setProperty('--yellow', NobleSite.state.branding.color || DEFAULT_BRANDING.color);
-  applySiteSettings();
-  syncContactLinks();
   if (NobleSite.state.featureFlags.scrollAnimations !== false) {
     initReveal();
   } else {
     document.querySelectorAll('.reveal, .reveal-l, .reveal-r').forEach((element) => element.classList.add('in'));
   }
+}
+
+function updateFavicons() {
+  const logoSrc = resolveAssetPath(NobleSite.state.branding.logo || DEFAULT_BRANDING.logo);
+  if (!logoSrc) return;
+  document.querySelectorAll('link[rel="icon"]').forEach((link) => {
+    link.setAttribute('href', logoSrc);
+  });
 }
 
 function initReveal() {
@@ -745,6 +934,13 @@ function toastColor(type) {
   return 'var(--yellow)';
 }
 
+function formatFooterCredit(text) {
+  const value = String(text || '').trim();
+  if (!value) return '';
+  if (!/galaxy studio/i.test(value)) return value;
+  return value.replace(/Galaxy Studio/ig, '<span style="color:var(--yellow)">Galaxy Studio</span>');
+}
+
 function applySiteSettings() {
   const data = NobleSite.state.siteSettings;
 
@@ -762,6 +958,21 @@ function applySiteSettings() {
 
   const aboutText = document.getElementById('aboutText');
   if (aboutText && data.aboutText) aboutText.textContent = data.aboutText;
+
+  const aboutStat1 = document.getElementById('aboutStat1');
+  if (aboutStat1) aboutStat1.textContent = data.aboutStat1 || DEFAULT_SITE_SETTINGS.aboutStat1;
+
+  const aboutStat1Label = document.getElementById('aboutStat1Label');
+  if (aboutStat1Label) aboutStat1Label.textContent = data.aboutStat1Label || DEFAULT_SITE_SETTINGS.aboutStat1Label;
+
+  const aboutYears = document.getElementById('aboutYears');
+  if (aboutYears) aboutYears.textContent = data.aboutYears || DEFAULT_SITE_SETTINGS.aboutYears;
+
+  const aboutSatisfaction = document.getElementById('aboutSatisfaction');
+  if (aboutSatisfaction) aboutSatisfaction.textContent = data.aboutSatisfaction || DEFAULT_SITE_SETTINGS.aboutSatisfaction;
+
+  const aboutClients = document.getElementById('aboutClients');
+  if (aboutClients) aboutClients.textContent = data.aboutClients || DEFAULT_SITE_SETTINGS.aboutClients;
 
   const primaryButton = document.querySelector('.hero-btns .btn-yellow');
   if (primaryButton) {
@@ -821,7 +1032,7 @@ function slugify(value) {
 function renderHomeServices(selector) {
   const root = document.querySelector(selector);
   if (!root) return;
-  const services = NobleSite.state.services.filter((service) => service.status !== false);
+  const services = NobleSite.state.services.filter((service) => service.status !== false && service.show_on_homepage !== false);
   root.innerHTML = services.map((service, index) => {
     const meta = getServiceMeta(service);
     return `
@@ -866,7 +1077,7 @@ function renderServicesPage(selector) {
         <div class="container">
           <div class="svc-layout${reverse}">
             <div class="svc-img ${revealImage}">
-              <img src="${meta.image}" alt="${service.name}" loading="lazy">
+              <img src="${resolveAssetPath(service.image_url || meta.image)}" alt="${service.name}" loading="lazy">
             </div>
             <div class="svc-content ${revealText}">
               <div class="icon-box"><i class="fas ${service.icon || 'fa-bolt'}"></i></div>
@@ -886,6 +1097,24 @@ function renderServicesPage(selector) {
   }).join('');
 }
 
+function renderAboutTeam(selector) {
+  const root = document.querySelector(selector);
+  if (!root) return;
+  const team = (NobleSite.state.siteSettings?.teamMembers || DEFAULT_SITE_SETTINGS.teamMembers).map(normalizeTeamMember).filter(Boolean);
+  root.innerHTML = team.map((member, index) => `
+    <div class="team-card reveal" style="transition-delay:${(index + 1) * 0.05}s">
+      <div class="team-photo">
+        ${member.image_url ? `<img src="${resolveAssetPath(member.image_url)}" alt="${member.name}" loading="lazy">` : `<i class="fas ${member.icon || 'fa-hard-hat'}"></i>`}
+      </div>
+      <div class="team-info">
+        <h3>${member.name}</h3>
+        <div class="role">${member.role}</div>
+        <p>${member.bio}</p>
+      </div>
+    </div>
+  `).join('');
+}
+
 function renderGalleryGrid(selector, filter = 'all') {
   const root = document.querySelector(selector);
   if (!root) return [];
@@ -893,7 +1122,7 @@ function renderGalleryGrid(selector, filter = 'all') {
   const visible = filter === 'all' ? allItems : allItems.filter((item) => item.cat === filter);
   root.innerHTML = visible.map((item, index) => `
     <div class="gal-item reveal" data-idx="${index}" style="transition-delay:${index * 0.06}s">
-      <img src="${item.img_url}" alt="${item.title}" loading="lazy">
+      <img src="${resolveAssetPath(item.img_url)}" alt="${item.title}" loading="lazy" onerror="this.onerror=null;this.src='${resolveAssetPath(DEFAULT_BRANDING.logo)}';">
       <div class="gal-overlay">
         <h4>${item.title}</h4>
         <span>${item.cat_label || item.cat} - ${item.location || ''}</span>
@@ -982,3 +1211,5 @@ window.renderServicesPage = renderServicesPage;
 window.renderGalleryGrid = renderGalleryGrid;
 window.renderContactPage = renderContactPage;
 window.getServiceMeta = getServiceMeta;
+window.SERVICE_ICON_CHOICES = SERVICE_ICON_CHOICES;
+window.renderAboutTeam = renderAboutTeam;
