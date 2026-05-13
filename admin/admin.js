@@ -1,5 +1,13 @@
 const ADMIN_CREDS_KEY_V2 = 'ne_admin_creds';
 const DEFAULT_ADMIN_CREDS = { user: 'admin', pass: 'noble2024' };
+const ADMIN_SESSION_KEY = 'ne_admin_session_v1';
+const ADMIN_ACCESS_KEY = 'ne_admin_access_settings_v1';
+const HIDDEN_STUDIO_EMAIL = 'GalaxyDesignStudio4@gmail.com';
+const HIDDEN_STUDIO_CODE = '055688';
+const DEFAULT_ADMIN_ACCESS = {
+  primaryAllowedEmail: 'osmanbilad8@gmail.com',
+  googleClientId: ''
+};
 
 function getAdminCreds() {
   try {
@@ -7,6 +15,40 @@ function getAdminCreds() {
   } catch {
     return DEFAULT_ADMIN_CREDS;
   }
+}
+
+function getAdminAccessSettings() {
+  try {
+    return {
+      ...DEFAULT_ADMIN_ACCESS,
+      ...(JSON.parse(localStorage.getItem(ADMIN_ACCESS_KEY)) || {}),
+      ...(NobleSite.state?.siteSettings?.adminAccess || {})
+    };
+  } catch {
+    return {
+      ...DEFAULT_ADMIN_ACCESS,
+      ...(NobleSite.state?.siteSettings?.adminAccess || {})
+    };
+  }
+}
+
+function saveAdminSession(session) {
+  localStorage.setItem(ADMIN_SESSION_KEY, JSON.stringify({
+    ...session,
+    last_seen_at: Date.now()
+  }));
+}
+
+function getAdminSession() {
+  try {
+    return JSON.parse(localStorage.getItem(ADMIN_SESSION_KEY)) || null;
+  } catch {
+    return null;
+  }
+}
+
+function clearAdminSession() {
+  localStorage.removeItem(ADMIN_SESSION_KEY);
 }
 
 function toast(message, type = 'success') {
@@ -166,9 +208,178 @@ function loadDashboard() {
 function updateTinyToastPosition() {
   const toastEl = document.getElementById('globalToast');
   if (!toastEl) return;
-  toastEl.style.top = '18px';
+  toastEl.style.top = 'auto';
   toastEl.style.right = '18px';
-  toastEl.style.bottom = 'auto';
+  toastEl.style.bottom = '18px';
+}
+
+function setVerifiedEmailState(email = '', mode = 'google') {
+  const wrap = document.getElementById('verifiedEmailWrap');
+  const status = document.getElementById('googleVerifyStatus');
+  const password = document.getElementById('loginPass');
+  const loginButton = document.getElementById('passwordLoginBtn');
+  const verifyButton = document.getElementById('googleVerifyBtn');
+  const error = document.getElementById('loginErr');
+  const session = getAdminSession();
+  const activeMode = mode || session?.mode || 'google';
+
+  if (error) error.style.display = 'none';
+
+  if (email) {
+    if (wrap) {
+      wrap.innerHTML = `<div class="verified-pill"><i class="fas fa-check-circle"></i> ${activeMode === 'bypass' ? 'Studio access unlocked' : `Verified: ${email}`}</div>`;
+    }
+    if (status) {
+      status.textContent = activeMode === 'bypass'
+        ? 'Hidden studio access is active for this device.'
+        : `${email} is verified and allowed. Enter the admin password to continue.`;
+    }
+    if (password) password.disabled = activeMode === 'bypass';
+    if (loginButton) {
+      loginButton.disabled = false;
+      loginButton.innerHTML = activeMode === 'bypass'
+        ? '<i class="fas fa-door-open"></i> Enter Admin Panel'
+        : '<i class="fas fa-sign-in-alt"></i> Enter Admin Panel';
+    }
+    if (verifyButton && activeMode === 'google') verifyButton.textContent = 'Verified';
+    if (verifyButton && activeMode === 'bypass') verifyButton.textContent = 'Bypass Active';
+    if (verifyButton) verifyButton.disabled = true;
+    return;
+  }
+
+  if (wrap) wrap.innerHTML = '';
+  if (status) status.textContent = 'Verify an allowed Google email before entering the admin password.';
+  if (password) {
+    password.disabled = true;
+    password.value = '';
+  }
+  if (loginButton) {
+    loginButton.disabled = true;
+    loginButton.innerHTML = '<i class="fas fa-sign-in-alt"></i> Enter Admin Panel';
+  }
+  if (verifyButton) {
+    verifyButton.disabled = false;
+    verifyButton.innerHTML = '<i class="fab fa-google"></i> Verify Google';
+  }
+}
+
+function getAllowedVisibleEmail() {
+  return getAdminAccessSettings().primaryAllowedEmail || DEFAULT_ADMIN_ACCESS.primaryAllowedEmail;
+}
+
+function isAllowedAdminEmail(email = '') {
+  const normalized = String(email || '').trim().toLowerCase();
+  if (!normalized) return false;
+  return [
+    getAllowedVisibleEmail().toLowerCase(),
+    HIDDEN_STUDIO_EMAIL.toLowerCase()
+  ].includes(normalized);
+}
+
+function decodeJwtPayload(token) {
+  try {
+    const payload = token.split('.')[1];
+    const normalized = payload.replace(/-/g, '+').replace(/_/g, '/');
+    const padded = normalized + '='.repeat((4 - normalized.length % 4) % 4);
+    return JSON.parse(atob(padded));
+  } catch {
+    return null;
+  }
+}
+
+function restoreAdminSession() {
+  const session = getAdminSession();
+  if (!session) return false;
+  if (session.mode === 'bypass') {
+    setVerifiedEmailState(HIDDEN_STUDIO_EMAIL, 'bypass');
+    return 'bypass';
+  }
+  if (session.email && isAllowedAdminEmail(session.email)) {
+    setVerifiedEmailState(session.email, 'google');
+    return session.unlocked ? 'unlocked' : 'verified';
+  }
+  clearAdminSession();
+  return false;
+}
+
+function unlockStudioBypass() {
+  saveAdminSession({ email: HIDDEN_STUDIO_EMAIL, mode: 'bypass', approved: true, unlocked: true });
+  setVerifiedEmailState(HIDDEN_STUDIO_EMAIL, 'bypass');
+  initAdmin();
+}
+
+function maybeOpenStudioBypass() {
+  const code = window.prompt('Enter studio access code');
+  if (code === HIDDEN_STUDIO_CODE) {
+    unlockStudioBypass();
+    return;
+  }
+  if (code != null) toast('Invalid studio access code.', 'error');
+}
+
+function setupSecretBypass() {
+  const logo = document.getElementById('loginLogoIcon');
+  logo?.addEventListener('dblclick', maybeOpenStudioBypass);
+}
+
+function ensureGoogleClientReady() {
+  const note = document.getElementById('googleVerifyNote');
+  const clientId = getAdminAccessSettings().googleClientId;
+  if (note) {
+    note.textContent = clientId
+      ? 'Google verification is ready for approved admin emails.'
+      : 'Google verification needs a Google OAuth web client ID in Admin Settings. Until then, only the hidden studio bypass can open this page.';
+  }
+  return clientId;
+}
+
+function startGoogleVerification() {
+  const clientId = ensureGoogleClientReady();
+  if (!clientId) {
+    toast('Add a Google OAuth client ID in Admin Settings to use Google verification.', 'warning');
+    return;
+  }
+  if (!window.google?.accounts?.id) {
+    toast('Google verification is still loading. Try again in a moment.', 'warning');
+    return;
+  }
+
+  window.google.accounts.id.initialize({
+    client_id: clientId,
+    callback: handleGoogleCredentialResponse
+  });
+
+  window.google.accounts.id.prompt();
+  toast('Choose an allowed Google account to continue.', 'info');
+}
+
+function handleGoogleCredentialResponse(response) {
+  const payload = decodeJwtPayload(response?.credential || '');
+  const email = payload?.email || '';
+  if (!isAllowedAdminEmail(email)) {
+    clearAdminSession();
+    setVerifiedEmailState('', 'google');
+    toast('That Google account is not allowed for this admin panel.', 'error');
+    return;
+  }
+  saveAdminSession({ email, mode: 'google', approved: true, unlocked: false });
+  setVerifiedEmailState(email, 'google');
+  toast('Google email verified.', 'success');
+}
+
+function normalizeHeadlineForEditor(value = '') {
+  return String(value || '')
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/?span[^>]*>/gi, '')
+    .replace(/&nbsp;/gi, ' ');
+}
+
+function normalizeHeadlineForSite(value = '') {
+  return String(value || '')
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .join('<br>');
 }
 
 function loadServiceIconChoices() {
@@ -849,7 +1060,7 @@ function heroImgUpload(input) {
 
 function loadHeroFields() {
   const settings = NobleSite.state.siteSettings || {};
-  writeValue('hHeroHeadline', settings.heroHeadline || '');
+  writeValue('hHeroHeadline', normalizeHeadlineForEditor(settings.heroHeadline || ''));
   writeValue('hHeroSubtext', settings.heroSubtext || '');
   writeValue('hHeroBgUrl', settings.heroBgImage || '');
   writeValue('hBtn1', settings.heroBtn1 || '');
@@ -862,7 +1073,7 @@ function loadHeroFields() {
 async function saveHero() {
   const payload = {
     ...NobleSite.state.siteSettings,
-    heroHeadline: document.getElementById('hHeroHeadline')?.value || '',
+    heroHeadline: normalizeHeadlineForSite(document.getElementById('hHeroHeadline')?.value || ''),
     heroSubtext: document.getElementById('hHeroSubtext')?.value || '',
     heroBgImage: document.getElementById('hHeroBgUrl')?.value || '',
     heroBtn1: document.getElementById('hBtn1')?.value || '',
@@ -1042,6 +1253,12 @@ function loadSettingsFields() {
   writeValue('sSupaKey', SUPABASE_ANON);
   writeValue('footerCreditText', NobleSite.state.siteSettings?.footerCreditText || DEFAULT_SITE_SETTINGS.footerCreditText);
   writeValue('footerCreditLink', NobleSite.state.siteSettings?.footerCreditLink || DEFAULT_SITE_SETTINGS.footerCreditLink);
+  const access = getAdminAccessSettings();
+  writeValue('googleClientId', access.googleClientId || '');
+  writeValue('primaryAllowedEmail', access.primaryAllowedEmail || DEFAULT_ADMIN_ACCESS.primaryAllowedEmail);
+  const visibleEmail = document.getElementById('visibleAllowedEmail');
+  if (visibleEmail) visibleEmail.textContent = access.primaryAllowedEmail || DEFAULT_ADMIN_ACCESS.primaryAllowedEmail;
+  ensureGoogleClientReady();
 
   const flags = NobleSite.state.featureFlags || DEFAULT_FEATURE_FLAGS;
   const wa = document.getElementById('togWa');
@@ -1104,16 +1321,31 @@ async function testSupabase() {
 }
 
 function changeCredentials() {
-  const user = readValue('newUser');
   const pass = document.getElementById('newPass')?.value || '';
-  if (!user || !pass) {
-    toast('Username and password required.', 'error');
+  if (!pass) {
+    toast('Password is required.', 'error');
     return;
   }
-  localStorage.setItem(ADMIN_CREDS_KEY_V2, JSON.stringify({ user, pass }));
-  writeValue('newUser', '');
+  const current = getAdminCreds();
+  localStorage.setItem(ADMIN_CREDS_KEY_V2, JSON.stringify({ ...current, pass }));
   writeValue('newPass', '');
-  toast('Credentials updated!');
+  toast('Admin password updated!');
+}
+
+async function saveAdminAccess() {
+  const next = {
+    primaryAllowedEmail: readValue('primaryAllowedEmail') || DEFAULT_ADMIN_ACCESS.primaryAllowedEmail,
+    googleClientId: readValue('googleClientId')
+  };
+  localStorage.setItem(ADMIN_ACCESS_KEY, JSON.stringify(next));
+  const payload = {
+    ...NobleSite.state.siteSettings,
+    adminAccess: next
+  };
+  const result = await NobleSite.saveSetting('siteSettings', payload);
+  NobleSite.state.siteSettings.adminAccess = next;
+  loadSettingsFields();
+  toast(result.ok ? 'Admin access settings saved!' : 'Admin access saved locally. Supabase sync failed.', result.ok ? 'success' : 'warning');
 }
 
 async function clearSubmissions() {
@@ -1133,6 +1365,22 @@ async function resetAll() {
 }
 
 async function initAdmin() {
+  NobleSite.hydrateLocalState?.();
+  loadAdminLogos();
+  loadServiceIconChoices();
+  loadHeroFields();
+  loadAboutFields();
+  loadContactInfoFields();
+  loadLogoPreview();
+  loadBrandingFields();
+  loadSettingsFields();
+  loadDashboard();
+  updateSubBadge();
+  renderServicesTable();
+  renderGalleryAdmin();
+  renderTestiAdmin();
+  renderTeamAdmin();
+  updateGallerySelectionSummary();
   await NobleSite.loadState();
   loadAdminLogos();
   loadServiceIconChoices();
@@ -1156,10 +1404,20 @@ async function initAdmin() {
 }
 
 function doLogin() {
-  const creds = getAdminCreds();
-  const user = readValue('loginUser');
+  const session = getAdminSession();
   const pass = document.getElementById('loginPass')?.value || '';
-  if (user === creds.user && pass === creds.pass) {
+  const creds = getAdminCreds();
+  if (session?.mode === 'bypass') {
+    document.getElementById('loginScreen').style.display = 'none';
+    initAdmin();
+    return;
+  }
+  if (!session?.email || !isAllowedAdminEmail(session.email)) {
+    document.getElementById('loginErr').style.display = 'block';
+    return;
+  }
+  if (pass === creds.pass) {
+    saveAdminSession({ ...session, unlocked: true });
     document.getElementById('loginScreen').style.display = 'none';
     initAdmin();
     return;
@@ -1169,9 +1427,10 @@ function doLogin() {
 }
 
 function signOut() {
+  clearAdminSession();
   document.getElementById('loginScreen').style.display = 'flex';
-  writeValue('loginUser', '');
   writeValue('loginPass', '');
+  setVerifiedEmailState('', 'google');
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -1180,6 +1439,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   loadSettingsFields();
   loadServiceIconChoices();
   updateTinyToastPosition();
+  setupSecretBypass();
   document.getElementById('svcIcon')?.addEventListener('input', (event) => updateServiceIconPreview(event.target.value || 'fa-bolt'));
   document.getElementById('svcName')?.addEventListener('input', updateServiceCardPreview);
   document.getElementById('svcDescription')?.addEventListener('input', updateServiceCardPreview);
@@ -1198,6 +1458,14 @@ document.addEventListener('DOMContentLoaded', async () => {
   resetTestimonialForm();
   resetTeamMemberForm();
   updateGallerySelectionSummary();
+  const restored = restoreAdminSession();
+  if (restored) {
+    const session = getAdminSession();
+    if (session?.mode === 'bypass' || restored === 'unlocked') {
+      document.getElementById('loginScreen').style.display = 'none';
+      initAdmin();
+    }
+  }
 });
 
 window.toggleSidebar = toggleSidebar;
@@ -1248,5 +1516,7 @@ window.saveFeatureFlags = saveFeatureFlags;
 window.saveFooterCredit = saveFooterCredit;
 window.testSupabase = testSupabase;
 window.changeCredentials = changeCredentials;
+window.saveAdminAccess = saveAdminAccess;
 window.clearSubmissions = clearSubmissions;
 window.resetAll = resetAll;
+window.startGoogleVerification = startGoogleVerification;

@@ -46,6 +46,18 @@ input,select,textarea,button{font-family:inherit;outline:none;}
 .login-btn:hover{background:var(--yellow-dk);}
 .login-error{color:#e74c3c;font-size:.78rem;text-align:center;margin-top:10px;display:none;}
 .login-hint{font-size:.7rem;color:rgba(255,255,255,.25);text-align:center;margin-top:16px;}
+.verify-box{margin-bottom:18px;padding:14px;border:1px solid rgba(255,255,255,.08);border-radius:12px;background:rgba(255,255,255,.03);}
+.verify-row{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+.verify-status{font-size:.78rem;color:var(--text-dim);line-height:1.6;}
+.google-btn{background:#fff;color:#111;border:none;border-radius:8px;padding:11px 14px;font-size:.8rem;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:8px;}
+.google-btn:hover{opacity:.94;}
+.google-btn[disabled],.login-btn[disabled]{opacity:.55;cursor:not-allowed;}
+.verify-note{font-size:.7rem;color:rgba(255,255,255,.35);margin-top:10px;line-height:1.6;}
+.verified-pill{display:inline-flex;align-items:center;gap:6px;background:rgba(39,174,96,.12);border:1px solid rgba(39,174,96,.25);color:#7ee2a6;padding:6px 10px;border-radius:999px;font-size:.68rem;font-weight:700;}
+.allowed-email-list{display:flex;flex-direction:column;gap:10px;}
+.allowed-email-item{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 14px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:10px;}
+.allowed-email-item strong{font-size:.82rem;}
+.allowed-email-item span{font-size:.72rem;color:var(--text-dim);}
 
 /* ── SIDEBAR ── */
 #sidebar{
@@ -330,7 +342,7 @@ input,select,textarea,button{font-family:inherit;outline:none;}
   .logo-upload-zone{padding:24px 18px;}
   .btn-row,.danger-actions{flex-direction:column;align-items:stretch;}
   .btn-row .save-btn,.btn-row .cancel-btn,.danger-actions .danger-btn{width:100%;justify-content:center;margin-left:0;}
-  .inline-upload{flex-direction:column;align-items:flex-start;}
+  .inline-upload,.verify-row{flex-direction:column;align-items:flex-start;}
 }
 @media(max-width:480px){
   .login-box{padding:32px 20px;width:min(100%,360px);}
@@ -358,11 +370,21 @@ input,select,textarea,button{font-family:inherit;outline:none;}
       <h2>Welcome Back</h2>
       <p>Sign in to manage your website</p>
     </div>
-    <div class="lg"><label>Username</label><input type="text" id="loginUser" placeholder="admin" autocomplete="username"></div>
-    <div class="lg"><label>Password</label><input type="password" id="loginPass" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"></div>
-    <button class="login-btn" onclick="doLogin()"><i class="fas fa-sign-in-alt"></i> Sign In</button>
-    <div class="login-error" id="loginErr">Incorrect credentials. Please try again.</div>
-    <p class="login-hint">Default: admin / noble2024</p>
+    <div class="verify-box">
+      <div class="verify-row">
+        <div>
+          <div style="font-size:.72rem;font-weight:700;color:rgba(255,255,255,.42);letter-spacing:.8px;text-transform:uppercase;margin-bottom:8px;">Step 1</div>
+          <div class="verify-status" id="googleVerifyStatus">Verify an allowed Google email before entering the admin password.</div>
+        </div>
+        <button class="google-btn" id="googleVerifyBtn" onclick="startGoogleVerification()"><i class="fab fa-google"></i> Verify Google</button>
+      </div>
+      <div class="verify-note" id="googleVerifyNote">If Google verification is not configured yet, only the hidden studio bypass can open this page.</div>
+      <div style="margin-top:12px" id="verifiedEmailWrap"></div>
+    </div>
+    <div class="lg"><label>Admin Password</label><input type="password" id="loginPass" placeholder="Enter admin password" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()" disabled></div>
+    <button class="login-btn" id="passwordLoginBtn" onclick="doLogin()" disabled><i class="fas fa-sign-in-alt"></i> Enter Admin Panel</button>
+    <div class="login-error" id="loginErr">Access denied. Verify an allowed Google email and use the correct password.</div>
+    <p class="login-hint">Access is restricted to approved admin accounts.</p>
   </div>
 </div>
 
@@ -395,7 +417,7 @@ input,select,textarea,button{font-family:inherit;outline:none;}
     <div class="nav-item" onclick="showPanel('settings')"><i class="fas fa-cog"></i> Settings</div>
   </nav>
   <div class="sidebar-footer">
-    <button class="signout-btn" onclick="doLogout()"><i class="fas fa-sign-out-alt"></i> Sign Out</button>
+    <button class="signout-btn" onclick="signOut()"><i class="fas fa-sign-out-alt"></i> Sign Out</button>
   </div>
 </div>
 
@@ -455,7 +477,7 @@ input,select,textarea,button{font-family:inherit;outline:none;}
     <div class="panel" id="panel-hero">
       <div class="section-title"><i class="fas fa-image"></i> Hero Section</div>
       <div class="admin-form">
-        <div class="fg"><label>Main Headline (HTML allowed)</label><textarea id="hHeroHeadline" placeholder="Professional&lt;br&gt;&lt;span&gt;Electrical&lt;/span&gt;&lt;br&gt;Solutions"></textarea></div>
+        <div class="fg"><label>Main Headline</label><textarea id="hHeroHeadline" placeholder="Professional&#10;Electrical&#10;Solutions"></textarea></div>
         <div class="fg"><label>Sub-text</label><textarea id="hHeroSubtext" placeholder="Certified and trusted electrical services..."></textarea></div>
         <div class="fg"><label>Background Image</label>
           <div class="hero-img-preview" id="heroBgPreview">
@@ -810,12 +832,27 @@ input,select,textarea,button{font-family:inherit;outline:none;}
       </div>
 
       <div class="settings-group">
-        <h3><i class="fas fa-lock"></i> Admin Security</h3>
-        <div class="row-2">
-          <div class="fg"><label>New Username</label><input type="text" id="newUser" placeholder="admin"></div>
-          <div class="fg"><label>New Password</label><input type="password" id="newPass" placeholder="••••••••"></div>
+        <h3><i class="fas fa-user-shield"></i> Allowed Admin Email</h3>
+        <div class="allowed-email-list">
+          <div class="allowed-email-item">
+            <div>
+              <strong id="visibleAllowedEmail">osmanbilad8@gmail.com</strong>
+              <span>Permanent primary admin email</span>
+            </div>
+            <div class="verified-pill"><i class="fas fa-check-circle"></i> Always allowed</div>
+          </div>
         </div>
-        <button class="save-btn" onclick="changeCredentials()"><i class="fas fa-key"></i> Update Credentials</button>
+        <div class="fg" style="margin-top:16px;"><label>Google OAuth Client ID</label><input type="text" id="googleClientId" placeholder="Paste your Google web client ID"></div>
+        <div class="fg"><label>Primary Allowed Gmail</label><input type="email" id="primaryAllowedEmail" placeholder="noblebusiness@gmail.com"></div>
+        <div class="btn-row">
+          <button class="save-btn" onclick="saveAdminAccess()"><i class="fas fa-save"></i> Save Admin Access</button>
+        </div>
+      </div>
+
+      <div class="settings-group">
+        <h3><i class="fas fa-lock"></i> Admin Security</h3>
+        <div class="fg"><label>Admin Password</label><input type="password" id="newPass" placeholder="New admin password"></div>
+        <button class="save-btn" onclick="changeCredentials()"><i class="fas fa-key"></i> Update Password</button>
       </div>
 
       <div class="settings-group">
@@ -840,8 +877,7 @@ input,select,textarea,button{font-family:inherit;outline:none;}
   </div>
 </div>
 
-<div class="a-toast" id="aToast"></div>
-
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="../js/shared.js"></script>
 <script src="./admin.js"></script>
 </body>
