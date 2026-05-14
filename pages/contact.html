@@ -240,8 +240,29 @@
 
 <div id="footer-mount"></div>
 <div class="toast"></div>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <script src="../js/shared.js"></script>
 <script>
+async function sendContactEmail(submission) {
+  const delivery = NobleSite.state.siteSettings?.emailDelivery || {};
+  if (!delivery.publicKey || !delivery.serviceId || !delivery.templateId || !window.emailjs) {
+    return { ok: false, skipped: true };
+  }
+
+  window.emailjs.init({ publicKey: delivery.publicKey });
+  await window.emailjs.send(delivery.serviceId, delivery.templateId, {
+    to_email: delivery.notifyTo || NobleSite.state.contactInfo?.ciEmail || '',
+    from_name: submission.name,
+    from_email: submission.email || 'no-reply@noble-electricals.local',
+    phone: submission.phone,
+    service: submission.service,
+    property: submission.property || 'Not specified',
+    message: submission.message
+  });
+
+  return { ok: true };
+}
+
 async function submitForm() {
   const btn = document.getElementById('submitBtn');
   const name = document.getElementById('fname').value.trim();
@@ -268,6 +289,15 @@ async function submitForm() {
   const result = await NobleSite.createSubmission(submission);
   if (!result.ok) {
     console.warn('Submission saved locally because Supabase write failed.', result.error);
+  }
+
+  try {
+    const emailResult = await sendContactEmail(submission);
+    if (emailResult.ok) {
+      console.info('Contact email sent successfully.');
+    }
+  } catch (error) {
+    console.warn('Contact form email delivery failed.', error);
   }
 
   setTimeout(() => {
