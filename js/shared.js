@@ -9,12 +9,14 @@ const IS_SUBPAGE = window.location.pathname.includes('/pages/') || window.locati
 const ROOT = IS_SUBPAGE ? '../' : '';
 
 const DEFAULT_FIXED_IMAGES = {
-  homeAboutMain: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80&auto=format',
-  homeAboutAccent: 'https://images.unsplash.com/photo-1609796037597-2d1a7f84c7a2?w=400&q=80&auto=format',
-  homeWhyImage: 'https://images.unsplash.com/photo-1574158622682-e40e69881006?w=700&q=80&auto=format',
-  aboutStoryMain: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80&auto=format',
-  aboutStoryAccent: 'https://images.unsplash.com/photo-1609796037597-2d1a7f84c7a2?w=400&q=80&auto=format'
+  homeAboutMain: 'logo.png',
+  homeAboutAccent: 'logo.png',
+  homeWhyImage: 'logo.png',
+  aboutStoryMain: 'logo.png',
+  aboutStoryAccent: 'logo.png'
 };
+
+const SITE_SYNC_KEY = 'ne_sync_signal_v1';
 
 const DEFAULT_SITE_SETTINGS = {
   heroHeadline: 'Powering Homes.<br><span>Building</span><br>Futures.',
@@ -124,10 +126,10 @@ const SERVICE_ICON_CHOICES = [
 ];
 
 const DEFAULT_GALLERY = [
-  { id: 1, title: 'Complete House Rewiring', cat: 'wiring', cat_label: 'House Wiring', location: 'East Legon, Accra', img_url: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80&auto=format' },
-  { id: 2, title: 'Solar Panel Installation', cat: 'solar', cat_label: 'Solar', location: 'Tema, Greater Accra', img_url: 'https://images.unsplash.com/photo-1509391366360-2e959784a276?w=600&q=80&auto=format' },
-  { id: 3, title: 'Commercial Lighting Fit-Out', cat: 'lighting', cat_label: 'Lighting', location: 'Airport Hills, Accra', img_url: 'https://images.unsplash.com/photo-1565814636199-ae8133055c1c?w=600&q=80&auto=format' },
-  { id: 4, title: 'Office Electrical Fit-Out', cat: 'commercial', cat_label: 'Commercial', location: 'Osu, Accra', img_url: 'https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=600&q=80&auto=format' }
+  { id: 1, title: 'Complete House Rewiring', cat: 'wiring', cat_label: 'House Wiring', location: 'East Legon, Accra', img_url: 'logo.png' },
+  { id: 2, title: 'Solar Panel Installation', cat: 'solar', cat_label: 'Solar', location: 'Tema, Greater Accra', img_url: 'logo.png' },
+  { id: 3, title: 'Commercial Lighting Fit-Out', cat: 'lighting', cat_label: 'Lighting', location: 'Airport Hills, Accra', img_url: 'logo.png' },
+  { id: 4, title: 'Office Electrical Fit-Out', cat: 'commercial', cat_label: 'Commercial', location: 'Osu, Accra', img_url: 'logo.png' }
 ];
 
 const DEFAULT_TESTIMONIALS = [
@@ -331,6 +333,36 @@ function resolveAssetPath(path) {
   return `${ROOT}${String(path).replace(/^(\.\/|\/)+/, '')}`;
 }
 
+function getSiteLogoSrc() {
+  return resolveAssetPath(NobleSite?.state?.branding?.logo || DEFAULT_BRANDING.logo);
+}
+
+function handleImageFallback(image) {
+  if (!image) return;
+  const logoSrc = getSiteLogoSrc();
+  if (!logoSrc) return;
+  image.onerror = null;
+  image.src = logoSrc;
+}
+
+function getManagedImageMarkup(src, alt, extra = '') {
+  const finalSrc = resolveAssetPath(src || NobleSite?.state?.branding?.logo || DEFAULT_BRANDING.logo);
+  const extraAttrs = extra ? ` ${extra}` : '';
+  return `<img src="${finalSrc}" alt="${alt}" loading="lazy" onerror="handleImageFallback(this)"${extraAttrs}>`;
+}
+
+function setManagedImageSource(image, src) {
+  if (!image) return;
+  image.onerror = () => handleImageFallback(image);
+  image.src = resolveAssetPath(src || NobleSite?.state?.branding?.logo || DEFAULT_BRANDING.logo);
+}
+
+function broadcastSiteStateChange(reason = 'update') {
+  try {
+    localStorage.setItem(SITE_SYNC_KEY, JSON.stringify({ reason, at: Date.now() }));
+  } catch {}
+}
+
 const Supabase = {
   get enabled() {
     return Boolean(SUPABASE_URL && SUPABASE_ANON);
@@ -340,6 +372,8 @@ const Supabase = {
     return {
       apikey: SUPABASE_ANON,
       Authorization: `Bearer ${SUPABASE_ANON}`,
+      'Cache-Control': 'no-cache',
+      Pragma: 'no-cache',
       ...extra
     };
   },
@@ -347,6 +381,7 @@ const Supabase = {
   async request(path, options = {}) {
     if (!this.enabled) throw new Error('Supabase is not configured.');
     const response = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+      cache: 'no-store',
       ...options,
       headers: this.headers(options.headers || {})
     });
@@ -487,11 +522,9 @@ const NobleSite = {
       const services = (fetchers[1].value || []).map((item) => ({
         ...normalizeService(item)
       }));
-      if (services.length) {
-        this.state.services = services;
-        this.state.supabaseReady = true;
-        this.state.source = 'supabase';
-      }
+      this.state.services = services.length ? services : clone(DEFAULT_SERVICES);
+      this.state.supabaseReady = true;
+      this.state.source = 'supabase';
     } else {
       missingTables.push(extractTableName(fetchers[1].reason, 'services'));
     }
@@ -500,11 +533,9 @@ const NobleSite = {
       const gallery = (fetchers[2].value || []).map((item) => ({
         ...normalizeGalleryItem(item)
       }));
-      if (gallery.length) {
-        this.state.gallery = gallery;
-        this.state.supabaseReady = true;
-        this.state.source = 'supabase';
-      }
+      this.state.gallery = gallery.length ? gallery : clone(DEFAULT_GALLERY);
+      this.state.supabaseReady = true;
+      this.state.source = 'supabase';
     } else {
       missingTables.push(extractTableName(fetchers[2].reason, 'gallery'));
     }
@@ -513,11 +544,9 @@ const NobleSite = {
       const testimonials = (fetchers[3].value || []).map((item) => ({
         ...normalizeTestimonial(item)
       }));
-      if (testimonials.length) {
-        this.state.testimonials = testimonials;
-        this.state.supabaseReady = true;
-        this.state.source = 'supabase';
-      }
+      this.state.testimonials = testimonials.length ? testimonials : clone(DEFAULT_TESTIMONIALS);
+      this.state.supabaseReady = true;
+      this.state.source = 'supabase';
     } else {
       missingTables.push(extractTableName(fetchers[3].reason, 'testimonials'));
     }
@@ -540,12 +569,14 @@ const NobleSite = {
   persistState() {
     LocalStore.set('siteSettings', this.state.siteSettings);
     LocalStore.set('branding', this.state.branding);
+    LocalStore.set('logo', this.state.branding.logo || '');
     LocalStore.set('contactInfo', this.state.contactInfo);
     LocalStore.set('featureFlags', this.state.featureFlags);
     LocalStore.set('services', this.state.services);
     LocalStore.set('gallery', this.state.gallery);
     LocalStore.set('testimonials', this.state.testimonials);
     LocalStore.set('submissions', this.state.submissions);
+    broadcastSiteStateChange('persist');
   },
 
   async saveSetting(key, value) {
@@ -701,8 +732,8 @@ function extractTableName(error, fallback) {
 function renderLogo(selector) {
   const el = document.querySelector(selector);
   if (!el) return;
-  const logoSrc = resolveAssetPath(NobleSite.state.branding.logo || DEFAULT_BRANDING.logo);
-  el.innerHTML = `<img src="${logoSrc}" alt="${NobleSite.state.branding.name} logo" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;">`;
+  const logoSrc = getSiteLogoSrc();
+  el.innerHTML = `<img src="${logoSrc}" alt="${NobleSite.state.branding.name} logo" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;" onerror="this.onerror=null;this.closest('div').innerHTML='<i class=&quot;fas fa-bolt&quot;></i>';">`;
 }
 
 function buildNavbar(activePage) {
@@ -808,6 +839,15 @@ function buildFooter() {
 }
 
 async function initShared(activePage) {
+  const renderDynamicSections = () => {
+    renderHomeServices?.('#homeServicesGrid');
+    renderHomeTestimonials?.('#homeTestimonialsGrid');
+    renderServicesPage?.('#servicesPageSections');
+    renderAboutTeam?.('#aboutTeamGrid');
+    renderGalleryGrid?.('#galleryGrid');
+    renderContactPage?.();
+  };
+
   const renderSharedLayout = () => {
     const navMount = document.getElementById('nav-mount');
     if (navMount) navMount.innerHTML = buildNavbar(activePage);
@@ -825,8 +865,21 @@ async function initShared(activePage) {
 
   NobleSite.hydrateLocalState?.();
   renderSharedLayout();
+  renderDynamicSections();
   await NobleSite.loadState();
   renderSharedLayout();
+  renderDynamicSections();
+
+  let syncTimer = null;
+  window.addEventListener('storage', (event) => {
+    if (event.key !== SITE_SYNC_KEY) return;
+    window.clearTimeout(syncTimer);
+    syncTimer = window.setTimeout(async () => {
+      await NobleSite.loadState();
+      renderSharedLayout();
+      renderDynamicSections();
+    }, 120);
+  });
 
   const navbar = document.getElementById('navbar');
   window.addEventListener('scroll', () => {
@@ -866,7 +919,7 @@ async function initShared(activePage) {
 }
 
 function updateFavicons() {
-  const logoSrc = resolveAssetPath(NobleSite.state.branding.logo || DEFAULT_BRANDING.logo);
+  const logoSrc = getSiteLogoSrc();
   if (!logoSrc) return;
   document.querySelectorAll('link[rel="icon"]').forEach((link) => {
     link.setAttribute('href', logoSrc);
@@ -1006,7 +1059,7 @@ function applySiteSettings() {
     ['aboutStoryAccentImage', siteImages.aboutStoryAccent]
   ].forEach(([id, src]) => {
     const image = document.getElementById(id);
-    if (image && src) image.src = resolveAssetPath(src);
+    if (image) setManagedImageSource(image, src);
   });
 
   const primaryButton = document.querySelector('.hero-btns .btn-yellow');
@@ -1112,7 +1165,7 @@ function renderServicesPage(selector) {
         <div class="container">
           <div class="svc-layout${reverse}">
             <div class="svc-img ${revealImage}">
-              <img src="${resolveAssetPath(service.image_url || meta.image)}" alt="${service.name}" loading="lazy">
+              ${getManagedImageMarkup(service.image_url, service.name)}
             </div>
             <div class="svc-content ${revealText}">
               <div class="icon-box"><i class="fas ${service.icon || 'fa-bolt'}"></i></div>
@@ -1139,7 +1192,7 @@ function renderAboutTeam(selector) {
   root.innerHTML = team.map((member, index) => `
     <div class="team-card reveal" style="transition-delay:${(index + 1) * 0.05}s">
       <div class="team-photo">
-        ${member.image_url ? `<img src="${resolveAssetPath(member.image_url)}" alt="${member.name}" loading="lazy">` : `<i class="fas ${member.icon || 'fa-hard-hat'}"></i>`}
+        ${member.image_url ? getManagedImageMarkup(member.image_url, member.name) : `<i class="fas ${member.icon || 'fa-hard-hat'}"></i>`}
       </div>
       <div class="team-info">
         <h3>${member.name}</h3>
@@ -1157,7 +1210,7 @@ function renderGalleryGrid(selector, filter = 'all') {
   const visible = filter === 'all' ? allItems : allItems.filter((item) => item.cat === filter);
   root.innerHTML = visible.map((item, index) => `
     <div class="gal-item reveal" data-idx="${index}" style="transition-delay:${index * 0.06}s">
-      <img src="${resolveAssetPath(item.img_url)}" alt="${item.title}" loading="lazy" onerror="this.onerror=null;this.src='${resolveAssetPath(DEFAULT_BRANDING.logo)}';">
+      ${getManagedImageMarkup(item.img_url, item.title)}
       <div class="gal-overlay">
         <h4>${item.title}</h4>
         <span>${item.cat_label || item.cat} - ${item.location || ''}</span>
@@ -1233,6 +1286,7 @@ function renderContactPage() {
 
 window.SUPABASE_URL = SUPABASE_URL;
 window.SUPABASE_ANON = SUPABASE_ANON;
+window.SITE_SYNC_KEY = SITE_SYNC_KEY;
 window.LocalStore = LocalStore;
 window.NobleSite = NobleSite;
 window.initShared = initShared;
@@ -1240,6 +1294,8 @@ window.initReveal = initReveal;
 window.initCounters = initCounters;
 window.showToast = showToast;
 window.applySiteSettings = applySiteSettings;
+window.handleImageFallback = handleImageFallback;
+window.getSiteLogoSrc = getSiteLogoSrc;
 window.renderHomeServices = renderHomeServices;
 window.renderHomeTestimonials = renderHomeTestimonials;
 window.renderServicesPage = renderServicesPage;

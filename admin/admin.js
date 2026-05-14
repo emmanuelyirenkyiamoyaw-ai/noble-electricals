@@ -16,6 +16,12 @@ const FIXED_SITE_IMAGE_FIELDS = [
   { key: 'aboutStoryAccent', title: 'About Story Accent', description: 'Small supporting image in the About page story section.' }
 ];
 
+const adminActionLocks = {
+  services: false,
+  gallery: false,
+  testimonials: false
+};
+
 function getAdminCreds() {
   try {
     return JSON.parse(localStorage.getItem(ADMIN_CREDS_KEY_V2)) || DEFAULT_ADMIN_CREDS;
@@ -69,6 +75,16 @@ function readValue(id) {
 function writeValue(id, value) {
   const el = document.getElementById(id);
   if (el) el.value = value ?? '';
+}
+
+async function runAdminAction(lockKey, action) {
+  if (adminActionLocks[lockKey]) return { skipped: true };
+  adminActionLocks[lockKey] = true;
+  try {
+    return await action();
+  } finally {
+    adminActionLocks[lockKey] = false;
+  }
 }
 
 function serviceList() {
@@ -417,9 +433,7 @@ function syncSelectedServiceIcon(icon) {
 function updateServiceImagePreview(src = '') {
   const preview = document.getElementById('svcImagePreview');
   if (!preview) return;
-  preview.innerHTML = src
-    ? `<img src="${resolveAssetPath(src)}" alt="Service image preview">`
-    : '<div class="placeholder"><i class="fas fa-image"></i><p>No image selected</p></div>';
+  preview.innerHTML = getManagedImageMarkup(src, 'Service image preview');
 }
 
 function updateServiceIconPreview(icon = 'fa-bolt') {
@@ -441,7 +455,7 @@ function updateTeamPreview(src = '') {
   const preview = document.getElementById('tmPreview');
   if (!preview) return;
   preview.innerHTML = src
-    ? `<img src="${resolveAssetPath(src)}" alt="Team member preview">`
+    ? getManagedImageMarkup(src, 'Team member preview')
     : '<div class="placeholder"><i class="fas fa-user"></i><p>No image selected</p></div>';
 }
 
@@ -585,7 +599,7 @@ function renderFixedSiteImagesAdmin() {
         <div class="fg">
           <label>Preview</label>
           <div class="service-thumb-preview" id="fsi-preview-${field.key}">
-            ${value ? `<img src="${resolveAssetPath(value)}" alt="${field.title}">` : '<div class="placeholder"><i class="fas fa-image"></i><p>No image selected</p></div>'}
+            ${getManagedImageMarkup(value, field.title)}
           </div>
         </div>
         <div class="fixed-image-actions">
@@ -599,9 +613,7 @@ function renderFixedSiteImagesAdmin() {
 function updateFixedSiteImagePreview(key, value) {
   const preview = document.getElementById(`fsi-preview-${key}`);
   if (!preview) return;
-  preview.innerHTML = value
-    ? `<img src="${resolveAssetPath(value)}" alt="${key}">`
-    : '<div class="placeholder"><i class="fas fa-image"></i><p>No image selected</p></div>';
+  preview.innerHTML = getManagedImageMarkup(value, key);
 }
 
 function fixedSiteImageUpload(input, key) {
@@ -712,13 +724,18 @@ function renderServicesTable() {
 }
 
 async function commitServices(services, successMessage) {
-  const result = await NobleSite.replaceServices(services);
-  renderServicesTable();
-  loadDashboard();
-  toast(result.ok ? successMessage : `${successMessage} Saved locally only because Supabase sync failed.`, result.ok ? 'success' : 'warning');
+  const outcome = await runAdminAction('services', async () => {
+    const result = await NobleSite.replaceServices(services);
+    renderServicesTable();
+    loadDashboard();
+    toast(result.ok ? successMessage : `${successMessage} Saved locally only because Supabase sync failed.`, result.ok ? 'success' : 'warning');
+    return result;
+  });
+  return outcome;
 }
 
 async function toggleService(index) {
+  if (adminActionLocks.services) return;
   const services = serviceList();
   const current = services[index];
   if (!current) return;
@@ -727,6 +744,7 @@ async function toggleService(index) {
 }
 
 async function toggleServiceHomepage(index) {
+  if (adminActionLocks.services) return;
   const services = serviceList();
   const current = services[index];
   if (!current) return;
@@ -735,14 +753,17 @@ async function toggleServiceHomepage(index) {
 }
 
 async function deleteService(index) {
+  if (adminActionLocks.services) return;
   if (!confirm('Delete this service?')) return;
   const services = serviceList();
   services.splice(index, 1);
-  await commitServices(services, 'Service deleted.');
+  const result = await commitServices(services, 'Service deleted.');
+  if (result?.skipped) return;
   resetServiceForm();
 }
 
 async function submitServiceForm() {
+  if (adminActionLocks.services) return;
   const name = readValue('svcName');
   const description = document.getElementById('svcDescription')?.value?.trim() || '';
   const icon = readValue('svcIcon') || 'fa-bolt';
@@ -778,16 +799,15 @@ async function submitServiceForm() {
   }
 
   services.sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
-  await commitServices(services, editIndex !== '' ? 'Service updated!' : 'Service added!');
+  const result = await commitServices(services, editIndex !== '' ? 'Service updated!' : 'Service added!');
+  if (result?.skipped) return;
   resetServiceForm();
 }
 
 function updateGalleryPreview(src = '') {
   const preview = document.getElementById('galleryPreview');
   if (!preview) return;
-  preview.innerHTML = src
-    ? `<img src="${resolveAssetPath(src)}" alt="Gallery preview" onerror="this.onerror=null;this.closest('.image-preview').innerHTML='<div class=&quot;placeholder&quot;><i class=&quot;fas fa-image&quot;></i><p>INVALID IMAGE</p></div>';">`
-    : '<div class="placeholder"><i class="fas fa-image"></i><p>PROJECT IMAGE</p></div>';
+  preview.innerHTML = getManagedImageMarkup(src, 'Gallery preview');
 }
 
 function resetGalleryForm() {
@@ -886,6 +906,7 @@ function fileToDataUrl(file) {
 }
 
 async function galleryBulkUpload(input) {
+  if (adminActionLocks.gallery) return;
   const files = [...(input.files || [])];
   if (!files.length) return;
   const select = document.getElementById('gCat');
@@ -908,10 +929,8 @@ async function galleryBulkUpload(input) {
         img_url: img
       });
     });
-    const result = await NobleSite.replaceGallery(items);
-    renderGalleryAdmin();
-    loadDashboard();
-    toast(result.ok ? `${files.length} gallery image(s) uploaded!` : 'Bulk gallery upload saved locally only because Supabase sync failed.', result.ok ? 'success' : 'warning');
+    const result = await commitGallery(items, `${files.length} gallery image(s) uploaded!`);
+    if (result?.skipped) return;
     input.value = '';
     resetGalleryForm();
   } catch (error) {
@@ -932,7 +951,7 @@ function renderGalleryAdmin() {
   grid.innerHTML = items.map((item, index) => `
     <div class="gal-admin-card ${selectedGalleryItems.has(index) ? 'selected' : ''}">
       <label class="gal-select"><input type="checkbox" ${selectedGalleryItems.has(index) ? 'checked' : ''} onchange="toggleGallerySelection(${index}, this.checked)"></label>
-      <img src="${resolveAssetPath(item.img_url)}" alt="${item.title}" loading="lazy">
+      ${getManagedImageMarkup(item.img_url, item.title)}
       <div class="gal-admin-info">
         <h4>${item.title}</h4>
         <span>${item.cat_label || item.cat} · ${item.location || ''}</span>
@@ -946,14 +965,19 @@ function renderGalleryAdmin() {
 }
 
 async function commitGallery(items, successMessage) {
-  const result = await NobleSite.replaceGallery(items);
-  renderGalleryAdmin();
-  loadDashboard();
-  updateGallerySelectionSummary();
-  toast(result.ok ? successMessage : `${successMessage} Saved locally only because Supabase sync failed.`, result.ok ? 'success' : 'warning');
+  const outcome = await runAdminAction('gallery', async () => {
+    const result = await NobleSite.replaceGallery(items);
+    renderGalleryAdmin();
+    loadDashboard();
+    updateGallerySelectionSummary();
+    toast(result.ok ? successMessage : `${successMessage} Saved locally only because Supabase sync failed.`, result.ok ? 'success' : 'warning');
+    return result;
+  });
+  return outcome;
 }
 
 async function addGalleryItem() {
+  if (adminActionLocks.gallery) return;
   const title = readValue('gTitle');
   const img = readValue('gImg');
   const editIndex = readValue('gEditIndex');
@@ -979,11 +1003,13 @@ async function addGalleryItem() {
     items.unshift(payload);
   }
 
-  await commitGallery(items, editIndex !== '' ? 'Gallery item updated!' : 'Gallery item added!');
+  const result = await commitGallery(items, editIndex !== '' ? 'Gallery item updated!' : 'Gallery item added!');
+  if (result?.skipped) return;
   resetGalleryForm();
 }
 
 async function delGallery(index) {
+  if (adminActionLocks.gallery) return;
   if (!confirm('Remove this gallery item?')) return;
   const items = galleryList();
   items.splice(index, 1);
@@ -1044,13 +1070,18 @@ function renderTestiAdmin() {
 }
 
 async function commitTestimonials(items, successMessage) {
-  const result = await NobleSite.replaceTestimonials(items);
-  renderTestiAdmin();
-  loadDashboard();
-  toast(result.ok ? successMessage : `${successMessage} Saved locally only because Supabase sync failed.`, result.ok ? 'success' : 'warning');
+  const outcome = await runAdminAction('testimonials', async () => {
+    const result = await NobleSite.replaceTestimonials(items);
+    renderTestiAdmin();
+    loadDashboard();
+    toast(result.ok ? successMessage : `${successMessage} Saved locally only because Supabase sync failed.`, result.ok ? 'success' : 'warning');
+    return result;
+  });
+  return outcome;
 }
 
 async function submitTestimonialForm() {
+  if (adminActionLocks.testimonials) return;
   const name = readValue('tName');
   const review = document.getElementById('tText')?.value?.trim() || '';
   const editIndex = readValue('tEditIndex');
@@ -1076,11 +1107,13 @@ async function submitTestimonialForm() {
     items.unshift(payload);
   }
 
-  await commitTestimonials(items, editIndex !== '' ? 'Testimonial updated!' : 'Testimonial added!');
+  const result = await commitTestimonials(items, editIndex !== '' ? 'Testimonial updated!' : 'Testimonial added!');
+  if (result?.skipped) return;
   resetTestimonialForm();
 }
 
 async function toggleTestimonial(index) {
+  if (adminActionLocks.testimonials) return;
   const items = testimonialList();
   const current = items[index];
   if (!current) return;
@@ -1089,10 +1122,12 @@ async function toggleTestimonial(index) {
 }
 
 async function delTesti(index) {
+  if (adminActionLocks.testimonials) return;
   if (!confirm('Delete this testimonial?')) return;
   const items = testimonialList();
   items.splice(index, 1);
-  await commitTestimonials(items, 'Testimonial deleted.');
+  const result = await commitTestimonials(items, 'Testimonial deleted.');
+  if (result?.skipped) return;
   resetTestimonialForm();
 }
 
@@ -1114,8 +1149,8 @@ function updateHeroBgPreview(url) {
   const preview = document.getElementById('heroBgPreview');
   if (!preview) return;
   preview.innerHTML = url
-    ? `<img src="${resolveAssetPath(url)}" alt="Hero Background" style="width:100%;height:100%;object-fit:cover;">`
-    : '<div class="placeholder"><i class="fas fa-image"></i><p>No image selected</p></div>';
+    ? getManagedImageMarkup(url, 'Hero Background', 'style="width:100%;height:100%;object-fit:cover;"')
+    : getManagedImageMarkup('', 'Hero Background', 'style="width:100%;height:100%;object-fit:cover;"');
 }
 
 function heroImgUpload(input) {
@@ -1202,7 +1237,7 @@ function handleLogoUpload(input) {
 function showLogoPreview(src) {
   const box = document.getElementById('logoPreviewBox');
   const row = document.getElementById('logoPreviewRow');
-  if (box) box.innerHTML = `<img src="${resolveAssetPath(src)}" alt="Logo">`;
+  if (box) box.innerHTML = getManagedImageMarkup(src, 'Logo');
   if (row) row.style.display = 'flex';
 }
 
@@ -1522,6 +1557,26 @@ function signOut() {
 
 document.addEventListener('DOMContentLoaded', async () => {
   await NobleSite.loadState();
+  let syncTimer = null;
+  window.addEventListener('storage', (event) => {
+    if (event.key !== window.SITE_SYNC_KEY) return;
+    window.clearTimeout(syncTimer);
+    syncTimer = window.setTimeout(async () => {
+      await NobleSite.loadState();
+      loadAdminLogos();
+      loadHeroFields();
+      loadAboutFields();
+      loadContactInfoFields();
+      loadLogoPreview();
+      loadBrandingFields();
+      loadSettingsFields();
+      loadDashboard();
+      renderServicesTable();
+      renderGalleryAdmin();
+      renderTestiAdmin();
+      renderTeamAdmin();
+    }, 120);
+  });
   loadAdminLogos();
   loadSettingsFields();
   loadServiceIconChoices();
