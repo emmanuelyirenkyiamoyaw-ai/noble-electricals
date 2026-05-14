@@ -4,7 +4,7 @@
 
 const SUPABASE_URL = 'https://aukkmeakwofvgzzvqxej.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF1a2ttZWFrd29mdmd6enZxeGVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0MDIxNzksImV4cCI6MjA5Mzk3ODE3OX0.00fa_JLFxEcmWbBMsSp0qvhPb1iYcdiHyO_GEEfOY7g';
-const SUPABASE_REQUEST_TIMEOUT_MS = 3500;
+const SUPABASE_REQUEST_TIMEOUT_MS = 2500;
 
 const IS_SUBPAGE = window.location.pathname.includes('/pages/') || window.location.pathname.includes('/admin/');
 const ROOT = IS_SUBPAGE ? '../' : '';
@@ -35,6 +35,13 @@ const DEFAULT_SITE_SETTINGS = {
   aboutClients: '200+',
   footerCreditText: 'Created and developed by Galaxy Studio',
   footerCreditLink: 'https://galaxystudio.site',
+  emailDelivery: {
+    provider: 'emailjs',
+    publicKey: '',
+    serviceId: '',
+    templateId: '',
+    notifyTo: 'osmanbilad8@gmail.com'
+  },
   siteImages: { ...DEFAULT_FIXED_IMAGES },
   teamMembers: [
     {
@@ -462,7 +469,8 @@ const NobleSite = {
     submissions: [],
     source: 'defaults',
     supabaseReady: false,
-    missingTables: []
+    missingTables: [],
+    supabaseIssue: ''
   },
 
   get defaultServices() {
@@ -498,7 +506,7 @@ const NobleSite = {
       submissions: LocalStore.get('submissions', [])
     };
 
-    this.state = { ...this.state, ...localState, source: 'local', supabaseReady: false, missingTables: [] };
+    this.state = { ...this.state, ...localState, source: 'local', supabaseReady: false, missingTables: [], supabaseIssue: '' };
     if (localState.logo && !this.state.branding.logo) this.state.branding.logo = localState.logo;
     this.mergeDefaults();
     return this.state;
@@ -518,6 +526,7 @@ const NobleSite = {
     ]);
 
     const missingTables = [];
+    const issues = [];
 
     if (fetchers[0].status === 'fulfilled') {
       const settingsMap = {};
@@ -530,7 +539,7 @@ const NobleSite = {
       this.state.supabaseReady = true;
       this.state.source = 'supabase';
     } else {
-      missingTables.push(extractTableName(fetchers[0].reason, 'site_settings'));
+      captureSupabaseProblem(fetchers[0].reason, 'site_settings', missingTables, issues);
     }
 
     if (fetchers[1].status === 'fulfilled') {
@@ -541,7 +550,7 @@ const NobleSite = {
       this.state.supabaseReady = true;
       this.state.source = 'supabase';
     } else {
-      missingTables.push(extractTableName(fetchers[1].reason, 'services'));
+      captureSupabaseProblem(fetchers[1].reason, 'services', missingTables, issues);
     }
 
     if (fetchers[2].status === 'fulfilled') {
@@ -552,7 +561,7 @@ const NobleSite = {
       this.state.supabaseReady = true;
       this.state.source = 'supabase';
     } else {
-      missingTables.push(extractTableName(fetchers[2].reason, 'gallery'));
+      captureSupabaseProblem(fetchers[2].reason, 'gallery', missingTables, issues);
     }
 
     if (fetchers[3].status === 'fulfilled') {
@@ -563,7 +572,7 @@ const NobleSite = {
       this.state.supabaseReady = true;
       this.state.source = 'supabase';
     } else {
-      missingTables.push(extractTableName(fetchers[3].reason, 'testimonials'));
+      captureSupabaseProblem(fetchers[3].reason, 'testimonials', missingTables, issues);
     }
 
     if (fetchers[4].status === 'fulfilled') {
@@ -572,10 +581,11 @@ const NobleSite = {
       this.state.source = 'supabase';
     } else {
       this.state.submissions = LocalStore.get('submissions', []);
-      missingTables.push(extractTableName(fetchers[4].reason, 'submissions'));
+      captureSupabaseProblem(fetchers[4].reason, 'submissions', missingTables, issues);
     }
 
     this.state.missingTables = [...new Set(missingTables.filter(Boolean))];
+    this.state.supabaseIssue = issues[0] || '';
     this.persistState();
     this.mergeDefaults();
     return this.state;
@@ -742,6 +752,27 @@ function extractTableName(error, fallback) {
   const text = String(error && error.message ? error.message : error || '');
   const match = text.match(/public\.([a-z_]+)/i);
   return match ? match[1] : fallback;
+}
+
+function isMissingTableError(error) {
+  const text = String(error && error.message ? error.message : error || '').toLowerCase();
+  return text.includes('relation') || text.includes('does not exist') || text.includes('public.');
+}
+
+function describeSupabaseIssue(error) {
+  const text = String(error && error.message ? error.message : error || '');
+  if (/timed out/i.test(text)) return 'Supabase is responding too slowly right now.';
+  if (/failed to fetch|networkerror|load failed/i.test(text)) return 'Supabase could not be reached from this browser.';
+  if (/jwt|permission|policy|unauthorized|forbidden/i.test(text)) return 'Supabase rejected the request. Check keys and policies.';
+  return text || 'Supabase is currently unavailable.';
+}
+
+function captureSupabaseProblem(error, fallbackTable, missingTables, issues) {
+  if (isMissingTableError(error)) {
+    missingTables.push(extractTableName(error, fallbackTable));
+    return;
+  }
+  issues.push(describeSupabaseIssue(error));
 }
 
 function renderLogo(selector) {
