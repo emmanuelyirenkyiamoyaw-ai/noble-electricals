@@ -9,6 +9,13 @@ const DEFAULT_ADMIN_ACCESS = {
   allowedEmails: [],
   googleClientId: ''
 };
+const FIXED_SITE_IMAGE_FIELDS = [
+  { key: 'homeAboutMain', title: 'Home About Main', description: 'Main image in the home page "Who We Are" section.' },
+  { key: 'homeAboutAccent', title: 'Home About Accent', description: 'Small supporting image in the home page "Who We Are" section.' },
+  { key: 'homeWhyImage', title: 'Home Why Choose Noble', description: 'Main image in the home page "Why Noble" section.' },
+  { key: 'aboutStoryMain', title: 'About Story Main', description: 'Large image in the About page story section.' },
+  { key: 'aboutStoryAccent', title: 'About Story Accent', description: 'Small supporting image in the About page story section.' }
+];
 const adminActionLocks = {
   services: false,
   gallery: false,
@@ -94,6 +101,13 @@ function testimonialList() {
 
 function teamMemberList() {
   return [...(NobleSite.state.siteSettings?.teamMembers || DEFAULT_SITE_SETTINGS.teamMembers || [])];
+}
+
+function fixedSiteImages() {
+  return {
+    ...(DEFAULT_SITE_SETTINGS.siteImages || {}),
+    ...(NobleSite.state.siteSettings?.siteImages || {})
+  };
 }
 
 const selectedGalleryItems = new Set();
@@ -574,6 +588,64 @@ function renderTeamAdmin() {
   `).join('');
 }
 
+function renderFixedSiteImagesAdmin() {
+  const grid = document.getElementById('fixedSiteImagesGrid');
+  if (!grid) return;
+  const images = fixedSiteImages();
+  grid.innerHTML = FIXED_SITE_IMAGE_FIELDS.map((field) => {
+    const value = images[field.key] || DEFAULT_BRANDING.logo;
+    return `
+      <div class="fixed-image-card">
+        <h4>${field.title}</h4>
+        <p>${field.description}</p>
+        <div class="fg"><label>Image URL</label><input type="url" id="fsi-${field.key}" value="${value}" placeholder="https://..."></div>
+        <div class="fg"><label>Upload Image</label>
+          <label class="logo-upload-zone inline-upload" style="padding:16px;">
+            <input type="file" accept="image/*" onchange="fixedSiteImageUpload(this, '${field.key}')">
+            <i class="fas fa-upload" style="color:var(--yellow)"></i>
+            <span style="font-size:.82rem;color:var(--text-dim)">Upload replacement image</span>
+          </label>
+        </div>
+        <div class="fg">
+          <label>Preview</label>
+          <div class="service-thumb-preview" id="fsi-preview-${field.key}">
+            ${getManagedImageMarkup(value, field.title)}
+          </div>
+        </div>
+        <div class="fixed-image-actions">
+          <button class="cancel-btn" type="button" onclick="resetFixedSiteImage('${field.key}')">Use Site Logo</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function updateFixedSiteImagePreview(key, value) {
+  const preview = document.getElementById(`fsi-preview-${key}`);
+  if (!preview) return;
+  preview.innerHTML = getManagedImageMarkup(value || NobleSite.state.branding.logo || DEFAULT_BRANDING.logo, key);
+}
+
+async function fixedSiteImageUpload(input, key) {
+  const file = input.files?.[0];
+  if (!file) return;
+  try {
+    const value = await imageFileToOptimizedDataUrl(file, { maxWidth: 1600, maxHeight: 1600, quality: 0.84, type: 'image/jpeg' });
+    writeValue(`fsi-${key}`, value);
+    updateFixedSiteImagePreview(key, value);
+    toast('Image loaded. Save site images to keep it.', 'info');
+  } catch (error) {
+    console.error(error);
+    toast('Image upload failed.', 'error');
+  }
+}
+
+function resetFixedSiteImage(key) {
+  const fallback = NobleSite.state.branding.logo || DEFAULT_BRANDING.logo;
+  writeValue(`fsi-${key}`, fallback);
+  updateFixedSiteImagePreview(key, fallback);
+}
+
 function selectServiceIcon(icon, label = '') {
   writeValue('svcIcon', icon);
   updateServiceIconPreview(icon);
@@ -586,14 +658,14 @@ function selectServiceIcon(icon, label = '') {
 function serviceImgUpload(input) {
   const file = input.files?.[0];
   if (!file) return;
-  const reader = new FileReader();
-  reader.onload = (event) => {
-    const value = event.target?.result || '';
+  imageFileToOptimizedDataUrl(file, { maxWidth: 1600, maxHeight: 1600, quality: 0.82, type: 'image/jpeg' }).then((value) => {
     writeValue('svcImage', value);
     updateServiceImagePreview(value);
     toast('Service image loaded. Save the service to keep it.', 'info');
-  };
-  reader.readAsDataURL(file);
+  }).catch((error) => {
+    console.error(error);
+    toast('Service image upload failed.', 'error');
+  });
 }
 
 function resetServiceForm() {
@@ -826,23 +898,18 @@ function editGallery(index) {
 function galleryImgUpload(input) {
   const file = input.files?.[0];
   if (!file) return;
-  const reader = new FileReader();
-  reader.onload = (event) => {
-    const value = event.target?.result || '';
+  imageFileToOptimizedDataUrl(file, { maxWidth: 1800, maxHeight: 1800, quality: 0.82, type: 'image/jpeg' }).then((value) => {
     writeValue('gImg', value);
     updateGalleryPreview(value);
     toast('Image loaded. Click Save Gallery Item to keep it.', 'info');
-  };
-  reader.readAsDataURL(file);
+  }).catch((error) => {
+    console.error(error);
+    toast('Gallery image upload failed.', 'error');
+  });
 }
 
 function fileToDataUrl(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = (event) => resolve(event.target?.result || '');
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
+  return imageFileToOptimizedDataUrl(file, { maxWidth: 1800, maxHeight: 1800, quality: 0.82, type: 'image/jpeg' });
 }
 
 async function galleryBulkUpload(input) {
@@ -1330,6 +1397,7 @@ function loadSettingsFields() {
   writeValue('sSupaKey', SUPABASE_ANON);
   writeValue('footerCreditText', NobleSite.state.siteSettings?.footerCreditText || DEFAULT_SITE_SETTINGS.footerCreditText);
   writeValue('footerCreditLink', NobleSite.state.siteSettings?.footerCreditLink || DEFAULT_SITE_SETTINGS.footerCreditLink);
+  renderFixedSiteImagesAdmin();
   const access = getAdminAccessSettings();
   writeValue('googleClientId', access.googleClientId || '');
   writeValue('primaryAllowedEmail', access.primaryAllowedEmail || DEFAULT_ADMIN_ACCESS.primaryAllowedEmail);
@@ -1385,6 +1453,20 @@ async function saveFooterCredit() {
   };
   const result = await NobleSite.saveSetting('siteSettings', payload);
   toast(result.ok ? 'Footer credit saved!' : 'Footer credit saved locally. Supabase sync failed.', result.ok ? 'success' : 'warning');
+}
+
+async function saveFixedSiteImages() {
+  const siteImages = {};
+  FIXED_SITE_IMAGE_FIELDS.forEach((field) => {
+    siteImages[field.key] = readValue(`fsi-${field.key}`) || NobleSite.state.branding.logo || DEFAULT_BRANDING.logo;
+  });
+  const payload = {
+    ...NobleSite.state.siteSettings,
+    siteImages
+  };
+  const result = await NobleSite.saveSetting('siteSettings', payload);
+  renderFixedSiteImagesAdmin();
+  toast(result.ok ? 'Site images saved!' : 'Site images saved locally. Supabase sync failed.', result.ok ? 'success' : 'warning');
 }
 
 async function testSupabase() {
@@ -1657,6 +1739,9 @@ window.delSubmission = delSubmission;
 window.saveSupabase = saveSupabase;
 window.saveFeatureFlags = saveFeatureFlags;
 window.saveFooterCredit = saveFooterCredit;
+window.saveFixedSiteImages = saveFixedSiteImages;
+window.fixedSiteImageUpload = fixedSiteImageUpload;
+window.resetFixedSiteImage = resetFixedSiteImage;
 window.testSupabase = testSupabase;
 window.changeCredentials = changeCredentials;
 window.saveAdminAccess = saveAdminAccess;

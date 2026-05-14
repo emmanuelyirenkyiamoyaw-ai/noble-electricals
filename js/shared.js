@@ -4,14 +4,20 @@
 
 const SUPABASE_URL = 'https://aukkmeakwofvgzzvqxej.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF1a2ttZWFrd29mdmd6enZxeGVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0MDIxNzksImV4cCI6MjA5Mzk3ODE3OX0.00fa_JLFxEcmWbBMsSp0qvhPb1iYcdiHyO_GEEfOY7g';
-const SUPABASE_REQUEST_TIMEOUT_MS = 7000;
+const SUPABASE_REQUEST_TIMEOUT_MS = 15000;
 const SITE_BUILD_VERSION = '2026-05-14-1';
 const SITE_CACHE_VERSION_KEY = 'ne_site_build_version';
 
 const IS_SUBPAGE = window.location.pathname.includes('/pages/') || window.location.pathname.includes('/admin/');
 const ROOT = IS_SUBPAGE ? '../' : '';
 
-const DEFAULT_FIXED_IMAGES = {};
+const DEFAULT_FIXED_IMAGES = {
+  homeAboutMain: 'logo.png',
+  homeAboutAccent: 'logo.png',
+  homeWhyImage: 'logo.png',
+  aboutStoryMain: 'logo.png',
+  aboutStoryAccent: 'logo.png'
+};
 
 const SITE_SYNC_KEY = 'ne_sync_signal_v1';
 
@@ -38,7 +44,7 @@ const DEFAULT_SITE_SETTINGS = {
     templateId: '',
     notifyTo: 'osmanbilad8@gmail.com'
   },
-  siteImages: {},
+  siteImages: { ...DEFAULT_FIXED_IMAGES },
   teamMembers: [
     {
       id: 1,
@@ -367,6 +373,45 @@ function setManagedImageSource(image, src) {
   image.src = resolveAssetPath(src || NobleSite?.state?.branding?.logo || DEFAULT_BRANDING.logo);
 }
 
+function imageFileToOptimizedDataUrl(file, options = {}) {
+  const {
+    maxWidth = 1600,
+    maxHeight = 1600,
+    quality = 0.82,
+    type = 'image/jpeg'
+  } = options;
+
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const image = new Image();
+      image.onload = () => {
+        const ratio = Math.min(maxWidth / image.width, maxHeight / image.height, 1);
+        const width = Math.max(1, Math.round(image.width * ratio));
+        const height = Math.max(1, Math.round(image.height * ratio));
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          resolve(String(reader.result || ''));
+          return;
+        }
+        ctx.drawImage(image, 0, 0, width, height);
+        try {
+          resolve(canvas.toDataURL(type, quality));
+        } catch {
+          resolve(String(reader.result || ''));
+        }
+      };
+      image.onerror = () => reject(new Error('Image load failed.'));
+      image.src = String(reader.result || '');
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
 function broadcastSiteStateChange(reason = 'update') {
   try {
     localStorage.setItem(SITE_SYNC_KEY, JSON.stringify({ reason, at: Date.now() }));
@@ -499,7 +544,7 @@ const NobleSite = {
 
   mergeDefaults() {
     this.state.siteSettings = { ...DEFAULT_SITE_SETTINGS, ...(this.state.siteSettings || {}) };
-    this.state.siteSettings.siteImages = { ...(this.state.siteSettings.siteImages || {}) };
+    this.state.siteSettings.siteImages = { ...DEFAULT_FIXED_IMAGES, ...(this.state.siteSettings.siteImages || {}) };
     this.state.siteSettings.teamMembers = (this.state.siteSettings.teamMembers || DEFAULT_SITE_SETTINGS.teamMembers).map(normalizeTeamMember).filter(Boolean);
     this.state.branding = { ...DEFAULT_BRANDING, ...(this.state.branding || {}) };
     this.state.contactInfo = { ...DEFAULT_CONTACT_INFO, ...(this.state.contactInfo || {}) };
@@ -937,7 +982,7 @@ async function initShared(activePage) {
   };
 
   purgeStaleLocalCache();
-  NobleSite.resetState?.();
+  NobleSite.hydrateLocalState?.({ useLocalFallback: true });
   renderSharedLayout();
   renderDynamicSections();
 
@@ -1097,6 +1142,7 @@ function buildFooterCreditHtml(text, link) {
 
 function applySiteSettings() {
   const data = NobleSite.state.siteSettings;
+  const siteImages = { ...DEFAULT_FIXED_IMAGES, ...(data.siteImages || {}) };
 
   const heroHeadline = document.getElementById('heroHeadline');
   if (heroHeadline && data.heroHeadline) heroHeadline.innerHTML = data.heroHeadline;
@@ -1127,6 +1173,17 @@ function applySiteSettings() {
 
   const aboutClients = document.getElementById('aboutClients');
   if (aboutClients) aboutClients.textContent = data.aboutClients || DEFAULT_SITE_SETTINGS.aboutClients;
+
+  [
+    ['homeAboutMainImage', siteImages.homeAboutMain],
+    ['homeAboutAccentImage', siteImages.homeAboutAccent],
+    ['homeWhyImage', siteImages.homeWhyImage],
+    ['aboutStoryMainImage', siteImages.aboutStoryMain],
+    ['aboutStoryAccentImage', siteImages.aboutStoryAccent]
+  ].forEach(([id, src]) => {
+    const image = document.getElementById(id);
+    if (image) setManagedImageSource(image, src);
+  });
 
   const primaryButton = document.querySelector('.hero-btns .btn-yellow');
   if (primaryButton) {
@@ -1225,15 +1282,7 @@ function renderServicesPage(selector) {
     const reverse = index % 2 === 1 ? ' reverse' : '';
     const revealImage = index % 2 === 1 ? 'reveal-r' : 'reveal-l';
     const revealText = index % 2 === 1 ? 'reveal-l' : 'reveal-r';
-    const visual = service.image_url
-      ? getManagedImageMarkup(service.image_url, service.name)
-      : `
-        <div style="height:100%;min-height:320px;display:flex;flex-direction:column;justify-content:flex-end;padding:28px;background:linear-gradient(145deg, rgba(255,193,7,.14), rgba(255,193,7,.04)), var(--dark);">
-          <div class="icon-box" style="margin-bottom:18px;"><i class="fas ${service.icon || 'fa-bolt'}"></i></div>
-          <h3 style="font-family:'Montserrat',sans-serif;font-size:1.1rem;font-weight:800;margin-bottom:10px;">${service.name}</h3>
-          <p style="margin:0;color:rgba(255,255,255,.62);line-height:1.8;">Professional service delivered with safety, neat finishing, and reliable support.</p>
-        </div>
-      `;
+    const visual = getManagedImageMarkup(service.image_url || NobleSite.state.branding.logo || DEFAULT_BRANDING.logo, service.name);
 
     return `
       <section class="svc-section" id="${meta.slug}">

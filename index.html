@@ -118,34 +118,11 @@
 /* ABOUT */
 .home-about { padding:96px 0; background:var(--black); }
 .about-grid { display:grid; grid-template-columns:1fr 1fr; gap:72px; align-items:center; }
-.about-media { position:relative; display:grid; gap:18px; }
-.ab-main {
-  border-radius:16px;
-  border:2px solid rgba(255,193,7,.15);
-  background:
-    linear-gradient(145deg, rgba(255,193,7,.14), rgba(255,193,7,.03)),
-    var(--dark);
-  padding:28px;
-  min-height:320px;
-  display:flex;
-  flex-direction:column;
-  justify-content:flex-end;
-}
-.ab-main h3 { font-family:'Montserrat',sans-serif; font-size:1.15rem; font-weight:800; margin-bottom:12px; }
-.ab-main p { color:rgba(255,255,255,.6); line-height:1.8; max-width:420px; }
-.ab-sub {
-  display:grid;
-  grid-template-columns:repeat(2,minmax(0,1fr));
-  gap:14px;
-}
-.ab-mini {
-  border-radius:14px;
-  border:1px solid rgba(255,255,255,.08);
-  background:var(--dark);
-  padding:18px 16px;
-}
-.ab-mini strong { display:block; font-family:'Montserrat',sans-serif; font-size:1.3rem; font-weight:900; color:var(--yellow); margin-bottom:6px; }
-.ab-mini span { color:rgba(255,255,255,.52); font-size:.78rem; line-height:1.5; }
+.about-media { position:relative; }
+.ab-main { border-radius:16px; overflow:hidden; aspect-ratio:4/3; border:2px solid rgba(255,193,7,.15); background:var(--dark); }
+.ab-main img { width:100%; height:100%; object-fit:cover; }
+.ab-sub { position:absolute; bottom:-24px; right:-24px; width:48%; aspect-ratio:1; border-radius:14px; overflow:hidden; border:3px solid var(--yellow); box-shadow:0 0 40px rgba(255,193,7,.2); background:var(--dark); }
+.ab-sub img { width:100%; height:100%; object-fit:cover; }
 .ab-badge {
   position:absolute; top:24px; left:-20px;
   background:var(--yellow); color:var(--black);
@@ -190,20 +167,7 @@
 /* WHY */
 .why-home { padding:96px 0; background:var(--black); }
 .why-layout { display:grid; grid-template-columns:1fr 1fr; gap:72px; align-items:start; }
-.why-spotlight {
-  margin-top:28px;
-  border-radius:var(--radius);
-  border:2px solid rgba(255,193,7,.15);
-  background:
-    radial-gradient(circle at top right, rgba(255,193,7,.18), transparent 38%),
-    linear-gradient(160deg, rgba(255,255,255,.03), rgba(255,255,255,.01)),
-    var(--dark);
-  padding:26px;
-}
-.why-spotlight h3 { font-family:'Montserrat',sans-serif; font-size:1.05rem; font-weight:800; margin-bottom:14px; }
-.why-spotlight ul { display:grid; gap:10px; }
-.why-spotlight li { display:flex; align-items:center; gap:10px; color:rgba(255,255,255,.65); font-size:.84rem; }
-.why-spotlight i { color:var(--yellow); font-size:.82rem; }
+.why-left img { width:100%; border-radius:var(--radius); margin-top:28px; aspect-ratio:4/3; object-fit:cover; border:2px solid rgba(255,193,7,.15); background:var(--dark); }
 .why-right { display:flex; flex-direction:column; gap:16px; }
 .why-item {
   background:var(--dark); border:1px solid rgba(255,255,255,.06);
@@ -241,7 +205,7 @@
   .hero-main .container { grid-template-columns:1fr; }
   .hero-cards { display:none; }
   .about-grid, .why-layout { grid-template-columns:1fr; gap:48px; }
-  .ab-sub { grid-template-columns:1fr; }
+  .ab-sub { display:none; }
   .svc-grid { grid-template-columns:repeat(2,1fr); }
   .testi-grid { grid-template-columns:1fr; }
   .cta-inner { grid-template-columns:1fr; }
@@ -347,18 +311,10 @@
     <div class="about-grid">
       <div class="about-media reveal-l">
         <div class="ab-main">
-          <h3>Safe electrical work and dependable property support across Accra.</h3>
-          <p>We focus on clean workmanship, honest communication, and practical solutions that last.</p>
+          <img id="homeAboutMainImage" src="logo.png" alt="Noble Electricals logo" loading="lazy" onerror="handleImageFallback(this)">
         </div>
         <div class="ab-sub">
-          <div class="ab-mini">
-            <strong>Licensed</strong>
-            <span>Professional electrical service with safety-first execution.</span>
-          </div>
-          <div class="ab-mini">
-            <strong>Responsive</strong>
-            <span>Fast support for homes, offices, shops, and development projects.</span>
-          </div>
+          <img id="homeAboutAccentImage" src="logo.png" alt="Noble Electricals logo" loading="lazy" onerror="handleImageFallback(this)">
         </div>
         <div class="ab-badge">
           <div class="num" id="aboutYears">10+</div>
@@ -411,14 +367,7 @@
         <h2 class="sec-h2">The Noble Difference You Can Feel</h2>
         <div class="divider"></div>
         <p class="sec-p">We're not just electricians — we're partners in making your space safe and efficient. Every job is backed by expertise, integrity, and genuine care.</p>
-        <div class="why-spotlight">
-          <h3>What clients rely on us for every time</h3>
-          <ul>
-            <li><i class="fas fa-check"></i>Clear quotes before work begins</li>
-            <li><i class="fas fa-check"></i>Neat finishing and proper safety checks</li>
-            <li><i class="fas fa-check"></i>Reliable support after installation and repair</li>
-          </ul>
-        </div>
+        <img id="homeWhyImage" src="logo.png" alt="Noble Electricals logo" loading="lazy" onerror="handleImageFallback(this)">
       </div>
       <div class="why-right">
         <div class="why-item reveal" style="transition-delay:.05s">
