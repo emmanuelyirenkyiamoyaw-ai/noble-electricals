@@ -4,18 +4,14 @@
 
 const SUPABASE_URL = 'https://aukkmeakwofvgzzvqxej.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF1a2ttZWFrd29mdmd6enZxeGVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0MDIxNzksImV4cCI6MjA5Mzk3ODE3OX0.00fa_JLFxEcmWbBMsSp0qvhPb1iYcdiHyO_GEEfOY7g';
-const SUPABASE_REQUEST_TIMEOUT_MS = 2500;
+const SUPABASE_REQUEST_TIMEOUT_MS = 7000;
+const SITE_BUILD_VERSION = '2026-05-14-1';
+const SITE_CACHE_VERSION_KEY = 'ne_site_build_version';
 
 const IS_SUBPAGE = window.location.pathname.includes('/pages/') || window.location.pathname.includes('/admin/');
 const ROOT = IS_SUBPAGE ? '../' : '';
 
-const DEFAULT_FIXED_IMAGES = {
-  homeAboutMain: 'logo.png',
-  homeAboutAccent: 'logo.png',
-  homeWhyImage: 'logo.png',
-  aboutStoryMain: 'logo.png',
-  aboutStoryAccent: 'logo.png'
-};
+const DEFAULT_FIXED_IMAGES = {};
 
 const SITE_SYNC_KEY = 'ne_sync_signal_v1';
 
@@ -42,7 +38,7 @@ const DEFAULT_SITE_SETTINGS = {
     templateId: '',
     notifyTo: 'osmanbilad8@gmail.com'
   },
-  siteImages: { ...DEFAULT_FIXED_IMAGES },
+  siteImages: {},
   teamMembers: [
     {
       id: 1,
@@ -133,18 +129,9 @@ const SERVICE_ICON_CHOICES = [
   { name: 'Tower', icon: 'fa-broadcast-tower' }
 ];
 
-const DEFAULT_GALLERY = [
-  { id: 1, title: 'Complete House Rewiring', cat: 'wiring', cat_label: 'House Wiring', location: 'East Legon, Accra', img_url: 'logo.png' },
-  { id: 2, title: 'Solar Panel Installation', cat: 'solar', cat_label: 'Solar', location: 'Tema, Greater Accra', img_url: 'logo.png' },
-  { id: 3, title: 'Commercial Lighting Fit-Out', cat: 'lighting', cat_label: 'Lighting', location: 'Airport Hills, Accra', img_url: 'logo.png' },
-  { id: 4, title: 'Office Electrical Fit-Out', cat: 'commercial', cat_label: 'Commercial', location: 'Osu, Accra', img_url: 'logo.png' }
-];
+const DEFAULT_GALLERY = [];
 
-const DEFAULT_TESTIMONIALS = [
-  { id: 1, name: 'Kwame Asante', role: 'Homeowner, East Legon', review: 'Noble Electricals rewired my entire house perfectly. Neat, professional, and ahead of schedule.', stars: 5, active: true },
-  { id: 2, name: 'Abena Mensah', role: 'Business Owner, Osu', review: 'They responded quickly to a major fault in my shop and fixed it completely.', stars: 5, active: true },
-  { id: 3, name: 'Kofi Boateng', role: 'Homeowner, Tema', review: 'Installed a complete solar system with great after-service support. Excellent work.', stars: 5, active: true }
-];
+const DEFAULT_TESTIMONIALS = [];
 
 const SERVICE_META = {
   'Electrical Installations (Residential & Commercial)': {
@@ -253,6 +240,21 @@ const LocalStore = {
     } catch {}
   }
 };
+
+const SITE_CONTENT_CACHE_KEYS = ['siteSettings', 'branding', 'logo', 'contactInfo', 'featureFlags', 'services', 'gallery', 'testimonials', 'submissions'];
+
+function purgeStaleLocalCache() {
+  try {
+    const currentVersion = localStorage.getItem(SITE_CACHE_VERSION_KEY);
+    if (currentVersion === SITE_BUILD_VERSION) return false;
+    SITE_CONTENT_CACHE_KEYS.forEach((key) => LocalStore.del(key));
+    localStorage.setItem(SITE_CACHE_VERSION_KEY, SITE_BUILD_VERSION);
+    broadcastSiteStateChange('version-update');
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 function parseSetting(value, fallback = null) {
   if (value == null) return fallback;
@@ -477,9 +479,27 @@ const NobleSite = {
     return clone(DEFAULT_SERVICES);
   },
 
+  resetState() {
+    this.state = {
+      siteSettings: clone(DEFAULT_SITE_SETTINGS),
+      branding: clone(DEFAULT_BRANDING),
+      contactInfo: clone(DEFAULT_CONTACT_INFO),
+      featureFlags: clone(DEFAULT_FEATURE_FLAGS),
+      services: clone(DEFAULT_SERVICES),
+      gallery: clone(DEFAULT_GALLERY),
+      testimonials: clone(DEFAULT_TESTIMONIALS),
+      submissions: [],
+      source: 'defaults',
+      supabaseReady: false,
+      missingTables: [],
+      supabaseIssue: ''
+    };
+    return this.state;
+  },
+
   mergeDefaults() {
     this.state.siteSettings = { ...DEFAULT_SITE_SETTINGS, ...(this.state.siteSettings || {}) };
-    this.state.siteSettings.siteImages = { ...DEFAULT_FIXED_IMAGES, ...(this.state.siteSettings.siteImages || {}) };
+    this.state.siteSettings.siteImages = { ...(this.state.siteSettings.siteImages || {}) };
     this.state.siteSettings.teamMembers = (this.state.siteSettings.teamMembers || DEFAULT_SITE_SETTINGS.teamMembers).map(normalizeTeamMember).filter(Boolean);
     this.state.branding = { ...DEFAULT_BRANDING, ...(this.state.branding || {}) };
     this.state.contactInfo = { ...DEFAULT_CONTACT_INFO, ...(this.state.contactInfo || {}) };
@@ -488,12 +508,18 @@ const NobleSite = {
     this.state.gallery = (this.state.gallery || []).map(normalizeGalleryItem).filter(Boolean);
     this.state.testimonials = (this.state.testimonials || []).map(normalizeTestimonial).filter(Boolean);
     if (!this.state.services.length) this.state.services = clone(DEFAULT_SERVICES);
-    if (!this.state.gallery.length) this.state.gallery = clone(DEFAULT_GALLERY);
-    if (!this.state.testimonials.length) this.state.testimonials = clone(DEFAULT_TESTIMONIALS);
     this.state.submissions = this.state.submissions || [];
   },
 
-  hydrateLocalState() {
+  hydrateLocalState(options = {}) {
+    const { useLocalFallback = true } = options;
+    purgeStaleLocalCache();
+    this.resetState();
+    if (!useLocalFallback) {
+      this.mergeDefaults();
+      return this.state;
+    }
+
     const localState = {
       siteSettings: LocalStore.get('siteSettings', clone(DEFAULT_SITE_SETTINGS)),
       branding: LocalStore.get('branding', clone(DEFAULT_BRANDING)),
@@ -512,8 +538,9 @@ const NobleSite = {
     return this.state;
   },
 
-  async loadState() {
-    this.hydrateLocalState();
+  async loadState(options = {}) {
+    const { useLocalFallback = true } = options;
+    this.hydrateLocalState({ useLocalFallback });
 
     if (!Supabase.enabled) return this.state;
 
@@ -557,7 +584,7 @@ const NobleSite = {
       const gallery = (fetchers[2].value || []).map((item) => ({
         ...normalizeGalleryItem(item)
       }));
-      this.state.gallery = gallery.length ? gallery : clone(DEFAULT_GALLERY);
+      this.state.gallery = gallery;
       this.state.supabaseReady = true;
       this.state.source = 'supabase';
     } else {
@@ -568,7 +595,7 @@ const NobleSite = {
       const testimonials = (fetchers[3].value || []).map((item) => ({
         ...normalizeTestimonial(item)
       }));
-      this.state.testimonials = testimonials.length ? testimonials : clone(DEFAULT_TESTIMONIALS);
+      this.state.testimonials = testimonials;
       this.state.supabaseReady = true;
       this.state.source = 'supabase';
     } else {
@@ -909,15 +936,16 @@ async function initShared(activePage) {
     syncContactLinks();
   };
 
-  NobleSite.hydrateLocalState?.();
+  purgeStaleLocalCache();
+  NobleSite.resetState?.();
   renderSharedLayout();
   renderDynamicSections();
 
-  NobleSite.loadState().then(() => {
+  NobleSite.loadState({ useLocalFallback: false }).then(() => {
     renderSharedLayout();
     renderDynamicSections();
   }).catch((error) => {
-    console.warn('Falling back to cached/default content because live data is slow or unavailable.', error);
+    console.warn('Using default content because live data is slow or unavailable.', error);
   });
 
   let syncTimer = null;
@@ -925,7 +953,7 @@ async function initShared(activePage) {
     if (event.key !== SITE_SYNC_KEY) return;
     window.clearTimeout(syncTimer);
     syncTimer = window.setTimeout(async () => {
-      await NobleSite.loadState();
+      await NobleSite.loadState({ useLocalFallback: false });
       renderSharedLayout();
       renderDynamicSections();
     }, 120);
@@ -1069,7 +1097,6 @@ function buildFooterCreditHtml(text, link) {
 
 function applySiteSettings() {
   const data = NobleSite.state.siteSettings;
-  const siteImages = { ...DEFAULT_FIXED_IMAGES, ...(data.siteImages || {}) };
 
   const heroHeadline = document.getElementById('heroHeadline');
   if (heroHeadline && data.heroHeadline) heroHeadline.innerHTML = data.heroHeadline;
@@ -1100,17 +1127,6 @@ function applySiteSettings() {
 
   const aboutClients = document.getElementById('aboutClients');
   if (aboutClients) aboutClients.textContent = data.aboutClients || DEFAULT_SITE_SETTINGS.aboutClients;
-
-  [
-    ['homeAboutMainImage', siteImages.homeAboutMain],
-    ['homeAboutAccentImage', siteImages.homeAboutAccent],
-    ['homeWhyImage', siteImages.homeWhyImage],
-    ['aboutStoryMainImage', siteImages.aboutStoryMain],
-    ['aboutStoryAccentImage', siteImages.aboutStoryAccent]
-  ].forEach(([id, src]) => {
-    const image = document.getElementById(id);
-    if (image) setManagedImageSource(image, src);
-  });
 
   const primaryButton = document.querySelector('.hero-btns .btn-yellow');
   if (primaryButton) {
@@ -1209,13 +1225,22 @@ function renderServicesPage(selector) {
     const reverse = index % 2 === 1 ? ' reverse' : '';
     const revealImage = index % 2 === 1 ? 'reveal-r' : 'reveal-l';
     const revealText = index % 2 === 1 ? 'reveal-l' : 'reveal-r';
+    const visual = service.image_url
+      ? getManagedImageMarkup(service.image_url, service.name)
+      : `
+        <div style="height:100%;min-height:320px;display:flex;flex-direction:column;justify-content:flex-end;padding:28px;background:linear-gradient(145deg, rgba(255,193,7,.14), rgba(255,193,7,.04)), var(--dark);">
+          <div class="icon-box" style="margin-bottom:18px;"><i class="fas ${service.icon || 'fa-bolt'}"></i></div>
+          <h3 style="font-family:'Montserrat',sans-serif;font-size:1.1rem;font-weight:800;margin-bottom:10px;">${service.name}</h3>
+          <p style="margin:0;color:rgba(255,255,255,.62);line-height:1.8;">Professional service delivered with safety, neat finishing, and reliable support.</p>
+        </div>
+      `;
 
     return `
       <section class="svc-section" id="${meta.slug}">
         <div class="container">
           <div class="svc-layout${reverse}">
             <div class="svc-img ${revealImage}">
-              ${getManagedImageMarkup(service.image_url, service.name)}
+              ${visual}
             </div>
             <div class="svc-content ${revealText}">
               <div class="icon-box"><i class="fas ${service.icon || 'fa-bolt'}"></i></div>
