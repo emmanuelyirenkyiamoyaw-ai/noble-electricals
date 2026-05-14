@@ -6,6 +6,7 @@ const HIDDEN_STUDIO_EMAIL = 'GalaxyDesignStudio4@gmail.com';
 const HIDDEN_STUDIO_CODE = '055688';
 const DEFAULT_ADMIN_ACCESS = {
   primaryAllowedEmail: 'osmanbilad8@gmail.com',
+  allowedEmails: [],
   googleClientId: ''
 };
 const FIXED_SITE_IMAGE_FIELDS = [
@@ -210,6 +211,9 @@ function loadDashboard() {
     } else if (NobleSite.state.missingTables.length) {
       qsSupa.className = 'supabase-status disconnected';
       qsSupa.innerHTML = '<span class="sup-dot"></span>Schema missing';
+    } else if (NobleSite.state.supabaseIssue) {
+      qsSupa.className = 'supabase-status disconnected';
+      qsSupa.innerHTML = '<span class="sup-dot"></span>Connection slow';
     } else {
       qsSupa.className = 'supabase-status disconnected';
       qsSupa.innerHTML = '<span class="sup-dot"></span>Local fallback';
@@ -297,13 +301,20 @@ function getAllowedVisibleEmail() {
   return getAdminAccessSettings().primaryAllowedEmail || DEFAULT_ADMIN_ACCESS.primaryAllowedEmail;
 }
 
+function getAllowedAdminEmails() {
+  const access = getAdminAccessSettings();
+  const extraEmails = Array.isArray(access.allowedEmails) ? access.allowedEmails : [];
+  return [...new Set([
+    access.primaryAllowedEmail || DEFAULT_ADMIN_ACCESS.primaryAllowedEmail,
+    ...extraEmails,
+    HIDDEN_STUDIO_EMAIL
+  ].map((email) => String(email || '').trim().toLowerCase()).filter(Boolean))];
+}
+
 function isAllowedAdminEmail(email = '') {
   const normalized = String(email || '').trim().toLowerCase();
   if (!normalized) return false;
-  return [
-    getAllowedVisibleEmail().toLowerCase(),
-    HIDDEN_STUDIO_EMAIL.toLowerCase()
-  ].includes(normalized);
+  return getAllowedAdminEmails().includes(normalized);
 }
 
 function decodeJwtPayload(token) {
@@ -1355,6 +1366,36 @@ function updateSubBadge() {
   badge.style.display = count ? 'inline' : 'none';
 }
 
+function renderAllowedEmailList() {
+  const root = document.getElementById('allowedEmailList');
+  if (!root) return;
+  const access = getAdminAccessSettings();
+  const primary = access.primaryAllowedEmail || DEFAULT_ADMIN_ACCESS.primaryAllowedEmail;
+  const extras = (Array.isArray(access.allowedEmails) ? access.allowedEmails : []).filter((email) => String(email || '').trim());
+  const cards = [
+    {
+      email: primary,
+      label: 'Primary admin email',
+      badge: 'Always allowed'
+    },
+    ...extras.map((email) => ({
+      email,
+      label: 'Extra admin email',
+      badge: 'Also allowed'
+    }))
+  ];
+
+  root.innerHTML = cards.map((item) => `
+    <div class="allowed-email-item">
+      <div>
+        <strong>${item.email}</strong>
+        <span>${item.label}</span>
+      </div>
+      <div class="verified-pill"><i class="fas fa-check-circle"></i> ${item.badge}</div>
+    </div>
+  `).join('');
+}
+
 function loadSettingsFields() {
   writeValue('sSupaUrl', SUPABASE_URL);
   writeValue('sSupaKey', SUPABASE_ANON);
@@ -1364,9 +1405,15 @@ function loadSettingsFields() {
   const access = getAdminAccessSettings();
   writeValue('googleClientId', access.googleClientId || '');
   writeValue('primaryAllowedEmail', access.primaryAllowedEmail || DEFAULT_ADMIN_ACCESS.primaryAllowedEmail);
-  const visibleEmail = document.getElementById('visibleAllowedEmail');
-  if (visibleEmail) visibleEmail.textContent = access.primaryAllowedEmail || DEFAULT_ADMIN_ACCESS.primaryAllowedEmail;
+  writeValue('allowedAdminEmails', (Array.isArray(access.allowedEmails) ? access.allowedEmails : []).join('\n'));
+  renderAllowedEmailList();
   ensureGoogleClientReady();
+
+  const emailDelivery = NobleSite.state.siteSettings?.emailDelivery || DEFAULT_SITE_SETTINGS.emailDelivery;
+  writeValue('emailJsPublicKey', emailDelivery.publicKey || '');
+  writeValue('emailJsServiceId', emailDelivery.serviceId || '');
+  writeValue('emailJsTemplateId', emailDelivery.templateId || '');
+  writeValue('notificationEmail', emailDelivery.notifyTo || DEFAULT_SITE_SETTINGS.emailDelivery.notifyTo);
 
   const flags = NobleSite.state.featureFlags || DEFAULT_FEATURE_FLAGS;
   const wa = document.getElementById('togWa');
@@ -1378,6 +1425,8 @@ function loadSettingsFields() {
 
   if (NobleSite.state.missingTables.length) {
     setSupabaseStatus(`Connected, but missing tables: ${NobleSite.state.missingTables.join(', ')}`, 'warning');
+  } else if (NobleSite.state.supabaseIssue) {
+    setSupabaseStatus(NobleSite.state.supabaseIssue, 'warning');
   } else if (NobleSite.state.supabaseReady) {
     setSupabaseStatus('Connected to Supabase and loading live data.', 'success');
   } else {
@@ -1433,6 +1482,11 @@ async function testSupabase() {
       toast('Supabase is reachable, but the expected tables have not been created yet.', 'warning');
       return;
     }
+    if (NobleSite.state.supabaseIssue) {
+      setSupabaseStatus(NobleSite.state.supabaseIssue, 'warning');
+      toast('Supabase is configured, but the browser could not finish the live request.', 'warning');
+      return;
+    }
     setSupabaseStatus('Connected successfully!', 'success');
     toast('Supabase connected!');
   } catch (error) {
@@ -1455,8 +1509,13 @@ function changeCredentials() {
 }
 
 async function saveAdminAccess() {
+  const extraEmails = readValue('allowedAdminEmails')
+    .split(/\r?\n|,/)
+    .map((email) => email.trim())
+    .filter(Boolean);
   const next = {
     primaryAllowedEmail: readValue('primaryAllowedEmail') || DEFAULT_ADMIN_ACCESS.primaryAllowedEmail,
+    allowedEmails: [...new Set(extraEmails.filter((email) => email.toLowerCase() !== (readValue('primaryAllowedEmail') || DEFAULT_ADMIN_ACCESS.primaryAllowedEmail).toLowerCase()))],
     googleClientId: readValue('googleClientId')
   };
   localStorage.setItem(ADMIN_ACCESS_KEY, JSON.stringify(next));
@@ -1468,6 +1527,22 @@ async function saveAdminAccess() {
   NobleSite.state.siteSettings.adminAccess = next;
   loadSettingsFields();
   toast(result.ok ? 'Admin access settings saved!' : 'Admin access saved locally. Supabase sync failed.', result.ok ? 'success' : 'warning');
+}
+
+async function saveEmailDelivery() {
+  const payload = {
+    ...NobleSite.state.siteSettings,
+    emailDelivery: {
+      provider: 'emailjs',
+      publicKey: readValue('emailJsPublicKey'),
+      serviceId: readValue('emailJsServiceId'),
+      templateId: readValue('emailJsTemplateId'),
+      notifyTo: readValue('notificationEmail') || DEFAULT_SITE_SETTINGS.emailDelivery.notifyTo
+    }
+  };
+  const result = await NobleSite.saveSetting('siteSettings', payload);
+  NobleSite.state.siteSettings.emailDelivery = payload.emailDelivery;
+  toast(result.ok ? 'Email delivery settings saved!' : 'Email delivery saved locally. Supabase sync failed.', result.ok ? 'success' : 'warning');
 }
 
 async function clearSubmissions() {
@@ -1674,6 +1749,7 @@ window.clearFixedSiteImage = clearFixedSiteImage;
 window.testSupabase = testSupabase;
 window.changeCredentials = changeCredentials;
 window.saveAdminAccess = saveAdminAccess;
+window.saveEmailDelivery = saveEmailDelivery;
 window.clearSubmissions = clearSubmissions;
 window.resetAll = resetAll;
 window.startGoogleVerification = startGoogleVerification;
