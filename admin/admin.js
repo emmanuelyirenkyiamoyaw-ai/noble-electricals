@@ -472,14 +472,14 @@ function updateTeamPreview(src = '') {
 function teamImageUpload(input) {
   const file = input.files?.[0];
   if (!file) return;
-  const reader = new FileReader();
-  reader.onload = (event) => {
-    const value = event.target?.result || '';
+  imageFileToOptimizedDataUrl(file, { maxWidth: 900, maxHeight: 900, quality: 0.8, type: 'image/jpeg' }).then((value) => {
     writeValue('tmImage', value);
     updateTeamPreview(value);
     toast('Team member image loaded.', 'info');
-  };
-  reader.readAsDataURL(file);
+  }).catch((error) => {
+    console.error(error);
+    toast('Team member image upload failed.', 'error');
+  });
 }
 
 function resetTeamMemberForm() {
@@ -510,12 +510,9 @@ function editTeamMember(index) {
 }
 
 async function saveTeamMembers(members, successMessage) {
-  const payload = {
-    ...NobleSite.state.siteSettings,
-    teamMembers: members
-  };
-  const result = await NobleSite.saveSetting('siteSettings', payload);
   NobleSite.state.siteSettings.teamMembers = members;
+  NobleSite.persistState();
+  const result = await NobleSite.saveSetting('teamMembers', members);
   renderTeamAdmin();
   toast(result.ok ? successMessage : `${successMessage} Saved locally. Supabase sync failed.`, result.ok ? 'success' : 'warning');
 }
@@ -1163,13 +1160,14 @@ function updateHeroBgPreview(url) {
 function heroImgUpload(input) {
   const file = input.files?.[0];
   if (!file) return;
-  const reader = new FileReader();
-  reader.onload = (event) => {
-    const data = event.target?.result || '';
+  imageFileToOptimizedDataUrl(file, { maxWidth: 1920, maxHeight: 1080, quality: 0.82, type: 'image/jpeg' }).then((data) => {
     writeValue('hHeroBgUrl', data);
     updateHeroBgPreview(data);
-  };
-  reader.readAsDataURL(file);
+    toast('Hero background image loaded.', 'info');
+  }).catch((error) => {
+    console.error(error);
+    toast('Hero background upload failed.', 'error');
+  });
 }
 
 function loadHeroFields() {
@@ -1186,7 +1184,6 @@ function loadHeroFields() {
 
 async function saveHero() {
   const payload = {
-    ...NobleSite.state.siteSettings,
     heroHeadline: normalizeHeadlineForSite(document.getElementById('hHeroHeadline')?.value || ''),
     heroSubtext: document.getElementById('hHeroSubtext')?.value || '',
     heroBgImage: document.getElementById('hHeroBgUrl')?.value || '',
@@ -1213,7 +1210,6 @@ function loadAboutFields() {
 
 async function saveAbout() {
   const payload = {
-    ...NobleSite.state.siteSettings,
     aboutTitle: document.getElementById('aTitle')?.value || '',
     aboutText: document.getElementById('aText')?.value || '',
     aboutStat1: document.getElementById('aStat1')?.value || DEFAULT_SITE_SETTINGS.aboutStat1,
@@ -1447,7 +1443,6 @@ async function saveFeatureFlags() {
 
 async function saveFooterCredit() {
   const payload = {
-    ...NobleSite.state.siteSettings,
     footerCreditText: readValue('footerCreditText') || DEFAULT_SITE_SETTINGS.footerCreditText,
     footerCreditLink: readValue('footerCreditLink') || DEFAULT_SITE_SETTINGS.footerCreditLink
   };
@@ -1460,11 +1455,9 @@ async function saveFixedSiteImages() {
   FIXED_SITE_IMAGE_FIELDS.forEach((field) => {
     siteImages[field.key] = readValue(`fsi-${field.key}`) || NobleSite.state.branding.logo || DEFAULT_BRANDING.logo;
   });
-  const payload = {
-    ...NobleSite.state.siteSettings,
-    siteImages
-  };
-  const result = await NobleSite.saveSetting('siteSettings', payload);
+  NobleSite.state.siteSettings.siteImages = siteImages;
+  NobleSite.persistState();
+  const result = await NobleSite.saveSetting('siteImages', siteImages);
   renderFixedSiteImagesAdmin();
   toast(result.ok ? 'Site images saved!' : 'Site images saved locally. Supabase sync failed.', result.ok ? 'success' : 'warning');
 }
@@ -1515,29 +1508,24 @@ async function saveAdminAccess() {
     googleClientId: readValue('googleClientId')
   };
   localStorage.setItem(ADMIN_ACCESS_KEY, JSON.stringify(next));
-  const payload = {
-    ...NobleSite.state.siteSettings,
-    adminAccess: next
-  };
-  const result = await NobleSite.saveSetting('siteSettings', payload);
   NobleSite.state.siteSettings.adminAccess = next;
+  NobleSite.persistState();
+  const result = await NobleSite.saveSetting('adminAccess', next);
   loadSettingsFields();
   toast(result.ok ? 'Admin access settings saved!' : 'Admin access saved locally. Supabase sync failed.', result.ok ? 'success' : 'warning');
 }
 
 async function saveEmailDelivery() {
   const payload = {
-    ...NobleSite.state.siteSettings,
-    emailDelivery: {
-      provider: 'emailjs',
-      publicKey: readValue('emailJsPublicKey'),
-      serviceId: readValue('emailJsServiceId'),
-      templateId: readValue('emailJsTemplateId'),
-      notifyTo: readValue('notificationEmail') || DEFAULT_SITE_SETTINGS.emailDelivery.notifyTo
-    }
+    provider: 'emailjs',
+    publicKey: readValue('emailJsPublicKey'),
+    serviceId: readValue('emailJsServiceId'),
+    templateId: readValue('emailJsTemplateId'),
+    notifyTo: readValue('notificationEmail') || DEFAULT_SITE_SETTINGS.emailDelivery.notifyTo
   };
-  const result = await NobleSite.saveSetting('siteSettings', payload);
-  NobleSite.state.siteSettings.emailDelivery = payload.emailDelivery;
+  NobleSite.state.siteSettings.emailDelivery = payload;
+  NobleSite.persistState();
+  const result = await NobleSite.saveSetting('emailDelivery', payload);
   toast(result.ok ? 'Email delivery settings saved!' : 'Email delivery saved locally. Supabase sync failed.', result.ok ? 'success' : 'warning');
 }
 

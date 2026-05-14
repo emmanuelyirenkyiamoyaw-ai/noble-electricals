@@ -5,7 +5,7 @@
 const SUPABASE_URL = 'https://aukkmeakwofvgzzvqxej.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF1a2ttZWFrd29mdmd6enZxeGVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0MDIxNzksImV4cCI6MjA5Mzk3ODE3OX0.00fa_JLFxEcmWbBMsSp0qvhPb1iYcdiHyO_GEEfOY7g';
 const SUPABASE_REQUEST_TIMEOUT_MS = 15000;
-const SITE_BUILD_VERSION = '2026-05-14-1';
+const SITE_BUILD_VERSION = '2026-05-14-2';
 const SITE_CACHE_VERSION_KEY = 'ne_site_build_version';
 
 const IS_SUBPAGE = window.location.pathname.includes('/pages/') || window.location.pathname.includes('/admin/');
@@ -584,18 +584,22 @@ const NobleSite = {
   },
 
   async loadState(options = {}) {
-    const { useLocalFallback = true } = options;
+    const { useLocalFallback = true, includeSubmissions = true } = options;
     this.hydrateLocalState({ useLocalFallback });
 
     if (!Supabase.enabled) return this.state;
 
-    const fetchers = await Promise.allSettled([
+    const fetchRequests = [
       Supabase.select('site_settings', 'key,value'),
       Supabase.select('services', '*&order=sort_order.asc.nullslast,id.asc'),
       Supabase.select('gallery', '*&order=created_at.desc.nullslast,id.desc'),
-      Supabase.select('testimonials', '*&order=created_at.desc.nullslast,id.desc'),
-      Supabase.select('submissions', '*&order=created_at.desc.nullslast')
-    ]);
+      Supabase.select('testimonials', '*&order=created_at.desc.nullslast,id.desc')
+    ];
+    if (includeSubmissions) {
+      fetchRequests.push(Supabase.select('submissions', '*&order=created_at.desc.nullslast'));
+    }
+
+    const fetchers = await Promise.allSettled(fetchRequests);
 
     const missingTables = [];
     const issues = [];
@@ -603,7 +607,15 @@ const NobleSite = {
     if (fetchers[0].status === 'fulfilled') {
       const settingsMap = {};
       for (const row of fetchers[0].value || []) settingsMap[row.key] = parseSetting(row.value);
-      this.state.siteSettings = { ...DEFAULT_SITE_SETTINGS, ...(settingsMap.siteSettings || {}), ...extractFlatSettings(settingsMap) };
+      this.state.siteSettings = {
+        ...DEFAULT_SITE_SETTINGS,
+        ...(settingsMap.siteSettings || {}),
+        ...extractFlatSettings(settingsMap),
+        ...(settingsMap.siteImages ? { siteImages: settingsMap.siteImages } : {}),
+        ...(settingsMap.teamMembers ? { teamMembers: settingsMap.teamMembers } : {}),
+        ...(settingsMap.adminAccess ? { adminAccess: settingsMap.adminAccess } : {}),
+        ...(settingsMap.emailDelivery ? { emailDelivery: settingsMap.emailDelivery } : {})
+      };
       this.state.branding = { ...DEFAULT_BRANDING, ...(settingsMap.branding || {}) };
       this.state.contactInfo = { ...DEFAULT_CONTACT_INFO, ...(settingsMap.contactInfo || {}) };
       this.state.featureFlags = { ...DEFAULT_FEATURE_FLAGS, ...(settingsMap.featureFlags || {}) };
@@ -647,13 +659,15 @@ const NobleSite = {
       captureSupabaseProblem(fetchers[3].reason, 'testimonials', missingTables, issues);
     }
 
-    if (fetchers[4].status === 'fulfilled') {
-      this.state.submissions = fetchers[4].value || [];
-      this.state.supabaseReady = true;
-      this.state.source = 'supabase';
-    } else {
-      this.state.submissions = LocalStore.get('submissions', []);
-      captureSupabaseProblem(fetchers[4].reason, 'submissions', missingTables, issues);
+    if (includeSubmissions) {
+      if (fetchers[4].status === 'fulfilled') {
+        this.state.submissions = fetchers[4].value || [];
+        this.state.supabaseReady = true;
+        this.state.source = 'supabase';
+      } else {
+        this.state.submissions = LocalStore.get('submissions', []);
+        captureSupabaseProblem(fetchers[4].reason, 'submissions', missingTables, issues);
+      }
     }
 
     this.state.missingTables = [...new Set(missingTables.filter(Boolean))];
@@ -986,7 +1000,7 @@ async function initShared(activePage) {
   renderSharedLayout();
   renderDynamicSections();
 
-  NobleSite.loadState({ useLocalFallback: false }).then(() => {
+  NobleSite.loadState({ useLocalFallback: false, includeSubmissions: false }).then(() => {
     renderSharedLayout();
     renderDynamicSections();
   }).catch((error) => {
@@ -998,7 +1012,7 @@ async function initShared(activePage) {
     if (event.key !== SITE_SYNC_KEY) return;
     window.clearTimeout(syncTimer);
     syncTimer = window.setTimeout(async () => {
-      await NobleSite.loadState({ useLocalFallback: false });
+      await NobleSite.loadState({ useLocalFallback: false, includeSubmissions: false });
       renderSharedLayout();
       renderDynamicSections();
     }, 120);
@@ -1325,6 +1339,7 @@ function renderAboutTeam(selector) {
       </div>
     </div>
   `).join('');
+  initReveal();
 }
 
 function renderGalleryGrid(selector, filter = 'all') {
