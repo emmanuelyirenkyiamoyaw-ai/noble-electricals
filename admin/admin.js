@@ -1556,7 +1556,7 @@ function signOut() {
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
-  await NobleSite.loadState();
+  NobleSite.hydrateLocalState?.();
   let syncTimer = null;
   window.addEventListener('storage', (event) => {
     if (event.key !== window.SITE_SYNC_KEY) return;
@@ -1600,6 +1600,18 @@ document.addEventListener('DOMContentLoaded', async () => {
   resetTestimonialForm();
   resetTeamMemberForm();
   updateGallerySelectionSummary();
+  NobleSite.loadState().then(() => {
+    loadAdminLogos();
+    loadSettingsFields();
+    loadServiceIconChoices();
+    loadDashboard();
+    renderServicesTable();
+    renderGalleryAdmin();
+    renderTestiAdmin();
+    renderTeamAdmin();
+  }).catch((error) => {
+    console.warn('Admin loaded with cached/default data because live data is slow or unavailable.', error);
+  });
   const restored = restoreAdminSession();
   if (restored) {
     const session = getAdminSession();

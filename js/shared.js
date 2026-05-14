@@ -4,6 +4,7 @@
 
 const SUPABASE_URL = 'https://aukkmeakwofvgzzvqxej.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF1a2ttZWFrd29mdmd6enZxeGVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0MDIxNzksImV4cCI6MjA5Mzk3ODE3OX0.00fa_JLFxEcmWbBMsSp0qvhPb1iYcdiHyO_GEEfOY7g';
+const SUPABASE_REQUEST_TIMEOUT_MS = 3500;
 
 const IS_SUBPAGE = window.location.pathname.includes('/pages/') || window.location.pathname.includes('/admin/');
 const ROOT = IS_SUBPAGE ? '../' : '';
@@ -380,11 +381,25 @@ const Supabase = {
 
   async request(path, options = {}) {
     if (!this.enabled) throw new Error('Supabase is not configured.');
-    const response = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
-      cache: 'no-store',
-      ...options,
-      headers: this.headers(options.headers || {})
-    });
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(() => controller.abort(new Error('Supabase request timeout')), SUPABASE_REQUEST_TIMEOUT_MS);
+
+    let response;
+    try {
+      response = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+        cache: 'no-store',
+        ...options,
+        signal: controller.signal,
+        headers: this.headers(options.headers || {})
+      });
+    } catch (error) {
+      if (controller.signal.aborted) {
+        throw new Error(`Supabase request timed out after ${SUPABASE_REQUEST_TIMEOUT_MS}ms`);
+      }
+      throw error;
+    } finally {
+      window.clearTimeout(timeoutId);
+    }
 
     if (!response.ok) {
       const message = await response.text();
@@ -866,9 +881,13 @@ async function initShared(activePage) {
   NobleSite.hydrateLocalState?.();
   renderSharedLayout();
   renderDynamicSections();
-  await NobleSite.loadState();
-  renderSharedLayout();
-  renderDynamicSections();
+
+  NobleSite.loadState().then(() => {
+    renderSharedLayout();
+    renderDynamicSections();
+  }).catch((error) => {
+    console.warn('Falling back to cached/default content because live data is slow or unavailable.', error);
+  });
 
   let syncTimer = null;
   window.addEventListener('storage', (event) => {
